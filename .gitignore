@@ -1,10 +1,16 @@
+# Data
+data/
+data-raw/
+
 # History files
 .Rhistory
 .Rapp.history
+.here
 
 # Session Data files
 .RData
 .RDataTmp
+*.Rproj
 
 # User-specific files
 .Ruserdata
