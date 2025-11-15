@@ -37,9 +37,9 @@ constr <- redist_constr(map) %>%
   )
 
 # simulate plans
-# plans <- redist_smc(map, nsims = 2500,
-#                     counties = middle25,
-#                     constr = constr)
+plans <- redist_smc(map, nsims = 2500,
+                    counties = middle25,
+                    constr = constr)
 
 
 # remotes::install_github("philipwosull/redist@gredist", INSTALL_opts="--preclean")
@@ -98,3 +98,5 @@ plans <- match_numbers(plans, "high25")
 
 # keep only plans where each school is in a distinct district
 plans <- drop_duplicate_schools(plans, schools_idx)
+
+write_rds(plans, here("data-raw/high25/plans_hs_noconstr.rds"), compress = "gz")

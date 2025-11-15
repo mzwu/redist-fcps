@@ -40,16 +40,18 @@ drop_duplicate_schools <- function(plans, schools_idx) {
   # get plans matrix
   mat <- as.matrix(plans)
   
-  # get rows where there is a school
+  # rows with schools only
   school_assign <- mat[schools_idx, , drop = FALSE]
   
-  # keep plans where each school is in a distinct district (no duplicates per column)
-  keep <- apply(school_assign, 2, function(v) !any(duplicated(v)))
+  # mark plans where any district repeats among the school tracts
+  # (ignoring NAs—remove the na.omit() if you want NA to count as a conflict)
+  has_conflict <- apply(school_assign, 2, function(x) {
+    x2 <- na.omit(x)
+    any(duplicated(x2))
+  })
   
-  # filter the plans object to those plans
-  plans_unique_schools <- plans[, keep, drop = FALSE]
-  
-  plans_unique_schools
+  # keep only valid plans (no conflicts)
+  mat_valid <- mat[, !has_conflict, drop = FALSE]
   
 }
 
@@ -172,4 +174,68 @@ IIJJKK"
   ggsave(out_path, plot = p, height = 15, width = 10)
   if (rstudioapi::isAvailable()) rstudioapi::viewer(out_path)
   invisible(out_path)
+}
+
+#' Plot heatmap of each tract's average sim - enacted commute distance to assigned school
+#'
+#' @param plans a `redist_plans` object
+#' @param map a `redist_map` object
+#' @param schools_idx a vector containing the map indices of each school
+#' @param commute_times a matrix containing commute distances between each tract
+#'
+#' @return a heatmap plot
+#' @export
+projected_average_heatmap <- function(plans, map, schools_idx, commute_times, level) {
+  if (level == "elem") {
+    tracts <- map %>%
+      mutate(same_area = map(elem25, ~ as.integer(which(map$elem25 == .x))),
+             school_row = map_int(
+               same_area,
+               ~ { hits <- which(schools_idx %in% .x)
+               if (length(hits)) hits[1] else NA_integer_ }
+             ),
+             current_commute = commute_times[cbind(row_number(), school_row)]) %>%
+      select(-same_area)
+  }
+  else if (level == "middle") {
+    tracts <- map %>%
+      mutate(same_area = map(middle25, ~ as.integer(which(map$middle25 == .x))),
+             school_row = map_int(
+               same_area,
+               ~ { hits <- which(schools_idx %in% .x)
+               if (length(hits)) hits[1] else NA_integer_ }
+             ),
+             current_commute = commute_times[cbind(row_number(), school_row)]) %>%
+      select(-same_area)
+  }
+  else if (level == "high") {
+    tracts <- map %>%
+      mutate(same_area = map(high25, ~ as.integer(which(map$high25 == .x))),
+             school_row = map_int(
+               same_area,
+               ~ { hits <- which(schools_idx %in% .x)
+               if (length(hits)) hits[1] else NA_integer_ }
+             ),
+             current_commute = commute_times[cbind(row_number(), school_row)]) %>%
+      select(-same_area)
+  }
+  # compute average commute time across simulated plans
+  mat <- as.matrix(plans)
+  n_tracts <- nrow(mat)
+  n_plans <- ncol(mat)
+  tract_commutes <- matrix(NA, nrow = n_tracts, ncol = n_plans)
+  for (p in 1:n_plans) {
+    districts <- mat[, p]
+    school_districts <- mat[schools_idx, p]
+    school_cols <- match(districts, school_districts)
+    tract_commutes[, p] <- commute_times[cbind(1:n_tracts, school_cols)]
+  }
+  avg_commute_per_tract <- rowMeans(tract_commutes, na.rm = TRUE)
+  tracts$avg_sim_commute <- avg_commute_per_tract
+  p_tracts <- tracts %>%
+    ggplot() +
+    geom_sf(aes(fill = avg_sim_commute - current_commute)) +
+    scale_fill_viridis_c("Average Simulated - \nCurrent Commute \n(seconds)") +
+    theme_bw() +
+    geom_sf(data = ffx_hs)
 }

@@ -1,4 +1,4 @@
-shp_path <- "data/ffx_tracts.rds"
+shp_path <- "data/ffx_blocks.rds"
 
 if (!file.exists(here(shp_path))) {
   cli_process_start("Preparing {.strong Fairfax County} shapefile")
@@ -9,21 +9,21 @@ if (!file.exists(here(shp_path))) {
     filter(COUNTYFP20 %in% c("059", "600", "610"))
   
   # read in Fairfax County block group data
-  # ffx_bg <- read_sf("data/tl_2024_51_bg/tl_2024_51_bg.shp") %>%
-  #   filter(COUNTYFP %in% c("059", "600", "610"))
-  # ffx_blocks <- ffx_blocks %>%
-  #   mutate(blockgrp = ffx_bg$OBJECTID[
-  #     geo_match(ffx_blocks, ffx_bg, method = "area")])
+  ffx_bg <- read_sf("data/tl_2024_51_bg/tl_2024_51_bg.shp") %>%
+    filter(COUNTYFP %in% c("059", "600", "610"))
+  ffx_blocks <- ffx_blocks %>%
+    mutate(blockgrp = ffx_bg$BLKGRPCE[
+      geo_match(ffx_blocks, ffx_bg, method = "area")])
   
   # read in Fairfax County tract data
   ffx_tract <- read_sf("data/tl_2024_51_tract/tl_2024_51_tract.shp") %>%
     filter(COUNTYFP %in% c("059", "600", "610"))
   ffx_blocks <- ffx_blocks %>%
     mutate(tract = ffx_tract$TRACTCE[
-      geo_match(ffx_blocks, ffx_tract, method = "area")]) %>%
-    group_by(tract) %>%
-    summarize(POP20 = sum(POP20),
-              geometry = st_union(geometry))
+      geo_match(ffx_blocks, ffx_tract, method = "area")]) #%>%
+    #group_by(tract) %>%
+    #summarize(POP20 = sum(POP20),
+              #geometry = st_union(geometry))
   
   # read in Elementary School Attendance Area data
   ffx_elementary <- read_sf("data/Elementary_School_Attendance_Areas/Elementary_School_Attendance_Areas.shp")
