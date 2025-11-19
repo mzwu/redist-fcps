@@ -9,10 +9,6 @@ capacity <- read_csv("data/school_capacities.csv") %>%
   mutate(utilization = membership / capacity,
          prop_capacity = capacity / sum(capacity))
 
-# combine attendance area geometry + capacity data
-ffx_elem <- read_sf("data/Elementary_School_Attendance_Areas/Elementary_School_Attendance_Areas.shp") %>%
-  merge(capacity, by.x = "OBJECTID", by.y = "object_id_area")
-
 # get rid of schools that don't have attendance areas
 ffx_es <- ffx_es %>%
   filter(OBJECTID %in% ffx_elem$object_id_school)
@@ -24,8 +20,10 @@ attr(map, "analysis_name") <- "ES_25"
 attr(map, "shp") <- ffx_shp
 attr(map, "districting_scheme") <- "single"
 
-# get school row indices of map
-schools_idx <- get_schools_idx(ffx_es, map)
+# get school row indices of map and capacities
+schools_info <- get_schools_info(ffx_es, map, capacity)
+schools_idx <- schools_info$map_idx
+schools_capacity <- schools_info$capacity
 
 if (!file.exists(here("data-raw/elem25/commute_times_es.rds"))) {
   # calculate commute times

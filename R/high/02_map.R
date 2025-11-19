@@ -9,10 +9,6 @@ capacity <- read_csv("data/school_capacities.csv") %>%
   mutate(utilization = membership / capacity,
          prop_capacity = capacity / sum(capacity))
 
-# combine attendance area geometry + capacity data
-ffx_high <- read_sf("data/High_School_Attendance_Areas/High_School_Attendance_Areas.shp") %>%
-  merge(capacity, by.x = "OBJECTID", by.y = "object_id_area")
-
 # get rid of schools that don't have attendance areas
 ffx_hs <- ffx_hs %>%
   filter(OBJECTID %in% ffx_high$object_id_school)
@@ -23,8 +19,10 @@ map <- redist_map(ffx_shp, pop_tol = 0.05,
 attr(map, "analysis_name") <- "HS_25"
 attr(map, "shp") <- ffx_shp
 
-# get school row indices of map
-schools_idx <- get_schools_idx(ffx_hs, map)
+# get school row indices of map and capacities
+schools_info <- get_schools_info(ffx_hs, map, capacity)
+schools_idx <- schools_info$map_idx
+schools_capacity <- schools_info$capacity
 
 if (!file.exists(here("data-raw/high25/commute_times_hs.rds"))) {
   # calculate commute times

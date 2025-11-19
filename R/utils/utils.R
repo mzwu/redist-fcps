@@ -1,11 +1,12 @@
-#' Get the indices of rows in the map that correspond to locations of schools
+#' Get the indices of rows in the map that correspond to locations of schools, and capacity of each school
 #'
 #' @param schools an `sf` object with a `geom_point` column denoting school locations
 #' @param map a `redist_map` object
+#' @param capacity a dataframe containing the capacity, name, and ID (mapping to schools) of each school
 #'
 #' @return a vector containing the map indices of each school
 #' @export
-get_schools_idx <- function(schools, map) {
+get_schools_info <- function(schools, map, capacity) {
   # get longitude and latitude for each school
   schools <- schools %>%
     mutate(lon = st_coordinates(.)[,1],
@@ -16,17 +17,30 @@ get_schools_idx <- function(schools, map) {
   schools_sf <- st_transform(schools_sf, st_crs(map))
   map_rowid <- map |> mutate(tract_row = row_number())
   
-  schools_idx <- schools_sf %>%
+  schools_info <- schools_sf %>%
     st_join(
       map_rowid["tract_row"],
       join = sf::st_within
+    ) %>%
+    merge(
+      capacity, 
+      by.x="OBJECTID", 
+      by.y="object_id_school"
+    ) %>%
+    select(
+      map_idx = tract_row,
+      type,
+      name,
+      capacity,
+      geometry
     )
   
   # 1-indexed
-  schools_idx_vec <- schools_idx$tract_row |> as.integer()
-  schools_idx_vec <- schools_idx_vec[!is.na(schools_idx_vec)]
+  schools_info$map_idx <- schools_info$map_idx |> as.integer()
+  schools_info <- schools_info %>%
+    filter(!is.na(map_idx))
   
-  schools_idx_vec
+  schools_info
 }
 
 #' Filter down to only plans where each school is assigned to a distinct district
