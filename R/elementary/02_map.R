@@ -11,7 +11,7 @@ capacity <- read_csv("data/school_capacities.csv") %>%
 
 # get rid of schools that don't have attendance areas
 ffx_es <- ffx_es %>%
-  filter(OBJECTID %in% ffx_elem$object_id_school)
+  filter(OBJECTID %in% capacity$object_id_school)
 
 # make redist_map
 map <- redist_map(ffx_shp, pop_tol = 0.1,
