@@ -28,20 +28,23 @@ if (!file.exists(here(shp_path))) {
   # read in Elementary School Attendance Area data
   ffx_elementary <- read_sf("data/Elementary_School_Attendance_Areas/Elementary_School_Attendance_Areas.shp")
   ffx_blocks <- ffx_blocks %>%
-    mutate(elem25 = ffx_elementary$OBJECTID[
+    mutate(elem25_id = ffx_elementary$OBJECTID[
       geo_match(ffx_blocks, ffx_elementary, method = "area")])
+  ffx_blocks$elem25 <- vctrs::vec_group_id(ffx_blocks$elem25_id)
   
   # read in Middle School Attendance Area data
   ffx_middle <- read_sf("data/Middle_School_Attendance_Areas/Middle_School_Attendance_Areas.shp")
   ffx_blocks <- ffx_blocks %>%
-    mutate(middle25 = ffx_middle$OBJECTID[
+    mutate(middle25_id = ffx_middle$OBJECTID[
       geo_match(ffx_blocks, ffx_middle, method = "area")])
+  ffx_blocks$middle25 <- vctrs::vec_group_id(ffx_blocks$middle25_id)
   
   # read in High School Attendance Area data
   ffx_high <- read_sf("data/High_School_Attendance_Areas/High_School_Attendance_Areas.shp")
   ffx_blocks <- ffx_blocks %>%
-    mutate(high25 = ffx_high$OBJECTID[
+    mutate(high25_id = ffx_high$OBJECTID[
       geo_match(ffx_blocks, ffx_high, method = "area")])
+  ffx_blocks$high25 <- vctrs::vec_group_id(ffx_blocks$high25_id)
   
   # clean up columns
   ffx_blocks <- ffx_blocks %>%
