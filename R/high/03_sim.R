@@ -99,4 +99,4 @@ plans <- match_numbers(plans, "high25")
 # keep only plans where each school is in a distinct district
 plans <- drop_duplicate_schools(plans, schools_idx)
 
-write_rds(plans, here("data-raw/high25/plans_hs_noconstr.rds"), compress = "gz")
+write_rds(plans, here("data-raw/high25/plans/plans_hs_noconstr.rds"), compress = "gz")

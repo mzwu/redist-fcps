@@ -48,4 +48,4 @@ plans <- match_numbers(plans, "middle25")
 # keep only plans where each school is in a distinct district
 # plans <- drop_duplicate_schools(plans, schools_idx)
 
-write_rds(plans, here("data-raw/middle25/plans_ms_noconstr.rds"), compress = "gz")
+write_rds(plans, here("data-raw/middle25/plans/plans_ms_noconstr.rds"), compress = "gz")

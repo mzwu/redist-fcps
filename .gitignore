@@ -1,6 +1,11 @@
 # Data
 data/*
-data-raw/
+data-raw/elem25/validation/*
+data-raw/middle25/validation/*
+data-raw/high25/validation/*
+data-raw/elem25/plans/*
+data-raw/middle25/plans/*
+data-raw/high25/plans/*
 
 # History files
 .Rhistory

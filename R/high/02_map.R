@@ -20,7 +20,7 @@ attr(map, "analysis_name") <- "HS_25"
 attr(map, "shp") <- ffx_shp
 
 # get school row indices of map and capacities
-schools_info <- get_schools_info(ffx_hs, map, capacity)
+schools_info <- get_schools_info(ffx_hs, map, ffx_shp, capacity, "high")
 schools_idx <- schools_info$map_idx
 schools_capacity <- schools_info$capacity
 

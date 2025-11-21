@@ -1,12 +1,31 @@
+#' Get a map between official school area IDs and normalized (1-ndist) IDs
+#'
+#' @param shp a shapefile object with both official school area ID and normalized ID
+#' @param level either elem, middle, or high
+#'
+#' @return a data frame with 2 columns, one with the official school district ID and the other with a normalized ID
+get_schools_id_map <- function(shp, level) {
+  shp %>%
+    st_drop_geometry() %>%
+    select(
+      paste0(level, "25_id"),
+      paste0(level, "25")
+    ) %>%
+    unique()
+}
+
 #' Get the indices of rows in the map that correspond to locations of schools, and capacity of each school
+#' in order of increasing school area ID
 #'
 #' @param schools an `sf` object with a `geom_point` column denoting school locations
 #' @param map a `redist_map` object
+#' @param shp a shapefile object with both official school area ID and normalized ID
 #' @param capacity a dataframe containing the capacity, name, and ID (mapping to schools) of each school
+#' @param level either elem, middle, or high
 #'
 #' @return a vector containing the map indices of each school
 #' @export
-get_schools_info <- function(schools, map, capacity) {
+get_schools_info <- function(schools, map, shp, capacity, level) {
   # get longitude and latitude for each school
   schools <- schools %>%
     mutate(lon = st_coordinates(.)[,1],
@@ -17,6 +36,7 @@ get_schools_info <- function(schools, map, capacity) {
   schools_sf <- st_transform(schools_sf, st_crs(map))
   map_rowid <- map |> mutate(tract_row = row_number())
   
+  # add row number and capacity data
   schools_info <- schools_sf %>%
     st_join(
       map_rowid["tract_row"],
@@ -26,14 +46,28 @@ get_schools_info <- function(schools, map, capacity) {
       capacity, 
       by.x="OBJECTID", 
       by.y="object_id_school"
-    ) %>%
+    )
+  
+  # get normalized school area ID
+  schools_id_map <- get_schools_id_map(shp, level)
+  schools_info <- schools_info %>%
+    merge(
+      schools_id_map,
+      by.x = "object_id_area",
+      by.y = paste0(level, "25_id")
+    )
+  
+  # select relevant rows in ascending ID order
+  schools_info <- schools_info %>%
     select(
       map_idx = tract_row,
+      paste0(level, "25"),
       type,
       name,
       capacity,
       geometry
-    )
+    ) %>%
+    arrange(.data[[paste0(level, "25")]])
   
   # 1-indexed
   schools_info$map_idx <- schools_info$map_idx |> as.integer()
@@ -184,7 +218,7 @@ IIJJKK"
     patchwork::plot_annotation(title = str_c(plans$draw[1], " Validation")) +
     patchwork::plot_layout(guides = "collect")
   
-  out_path <- here(str_glue("data-raw/{plans$draw[1]}/validation_{format(Sys.time(), '%Y%m%d_%H%M')}.png"))
+  out_path <- here(str_glue("data-raw/{plans$draw[1]}/validation/validation_{format(Sys.time(), '%Y%m%d_%H%M')}.png"))
   ggsave(out_path, plot = p, height = 15, width = 10)
   if (rstudioapi::isAvailable()) rstudioapi::viewer(out_path)
   invisible(out_path)
@@ -233,6 +267,7 @@ projected_average_heatmap <- function(plans, map, schools_idx, commute_times, le
              current_commute = commute_times[cbind(row_number(), school_row)]) %>%
       select(-same_area)
   }
+  
   # compute average commute time across simulated plans
   mat <- as.matrix(plans)
   n_tracts <- nrow(mat)
@@ -246,6 +281,7 @@ projected_average_heatmap <- function(plans, map, schools_idx, commute_times, le
   }
   avg_commute_per_tract <- rowMeans(tract_commutes, na.rm = TRUE)
   tracts$avg_sim_commute <- avg_commute_per_tract
+  
   p_tracts <- tracts %>%
     ggplot() +
     geom_sf(aes(fill = avg_sim_commute - current_commute)) +

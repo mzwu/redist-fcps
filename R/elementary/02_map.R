@@ -21,7 +21,7 @@ attr(map, "shp") <- ffx_shp
 attr(map, "districting_scheme") <- "single"
 
 # get school row indices of map and capacities
-schools_info <- get_schools_info(ffx_es, map, capacity)
+schools_info <- get_schools_info(ffx_es, map, ffx_shp, capacity, "elem")
 schools_idx <- schools_info$map_idx
 schools_capacity <- schools_info$capacity
 
