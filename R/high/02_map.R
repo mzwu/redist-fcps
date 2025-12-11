@@ -13,6 +13,17 @@ capacity <- read_csv("data/school_capacities.csv") %>%
 ffx_hs <- ffx_hs %>%
   filter(OBJECTID %in% capacity$object_id_school)
 
+# Sample 5 middle plans as starter plans
+middle_plans <- read_rds(here("data-raw/middle25/plans/plans_ms_countyelem.rds"))
+
+plans5 <- middle_plans %>%
+  filter(draw != "middle25") %>%
+  filter(draw %in% sample(unique(draw), 5))
+
+draws5 <- as.numeric(match(levels(plans5$draw), middle_plans$draw %>% unique()))
+
+ffx_shp <- add_starter_plans(ffx_shp, middle_plans, draws5, "middle")
+
 # make redist_map
 map <- redist_map(ffx_shp, pop_tol = 0.9,
                   existing_plan = high25, adj = ffx_shp$adj)
@@ -34,5 +45,3 @@ if (!file.exists(here("data-raw/high25/commute_times_hs.rds"))) {
 } else {
   commute_times <- read_rds(here("data-raw/high25/commute_times_hs.rds"))
 }
-
-# TODO: take random sample of middle plans as starter plans
