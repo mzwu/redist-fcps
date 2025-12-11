@@ -20,10 +20,7 @@ if (!file.exists(here(shp_path))) {
     filter(COUNTYFP %in% c("059", "600", "610"))
   ffx_blocks <- ffx_blocks %>%
     mutate(tract = ffx_tract$TRACTCE[
-      geo_match(ffx_blocks, ffx_tract, method = "area")]) #%>%
-    #group_by(tract) %>%
-    #summarize(POP20 = sum(POP20),
-              #geometry = st_union(geometry))
+      geo_match(ffx_blocks, ffx_tract, method = "area")])
   
   # read in Elementary School Attendance Area data
   ffx_elementary <- read_sf("data/Elementary_School_Attendance_Areas/Elementary_School_Attendance_Areas.shp")

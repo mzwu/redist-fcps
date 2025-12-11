@@ -92,7 +92,6 @@ drop_duplicate_schools <- function(plans, schools_idx) {
   school_assign <- mat[schools_idx, , drop = FALSE]
   
   # mark plans where any district repeats among the school tracts
-  # (ignoring NAs—remove the na.omit() if you want NA to count as a conflict)
   has_conflict <- apply(school_assign, 2, function(x) {
     x2 <- na.omit(x)
     any(duplicated(x2))
@@ -101,40 +100,56 @@ drop_duplicate_schools <- function(plans, schools_idx) {
   # keep only valid plans (no conflicts)
   mat_valid <- mat[, !has_conflict, drop = FALSE]
   
+  mat_valid
+}
+
+#' Add starter lower level plans to serve as counties
+#'
+#' @param shp shapefile object
+#' @param lower_plans `redist_plans` object with all plans
+#' @param draws specific draws to add as starters
+#' @param level "elem" or "middle" describing the lower level
+#'
+#' @return a filtered down `redist_plans` object
+#' @export
+add_starter_plans <- function(shp, lower_plans, draws, level) {
+  for (i in 1:length(draws)) {
+    shp <- shp %>%
+      mutate("{level}{i}" := get_plans_matrix(lower_plans)[,draws[[i]]+1])
+  }
+  shp
 }
 
 #' Add summary statistics to the simulated plans
 #'
 #' @param plans a `redist_plans` object
 #' @param map a `redist_map` object
+#' @param current enacted plan for level of current sims
+#' @param schools indices of school locations in map
+#' @param commute_times matrix of commute times from blocks to schools
+#' @param level string describing level of current sims, "elem" or "middle" or "high"
 #' @param ... additional summary statistics to compute
 #'
 #' @return a modified `redist_plans` object
 #' @export
-add_summary_stats <- function(plans, map, schools, commute_times, ...) {
+add_summary_stats <- function(plans, map, current, schools, commute_times, level, ...) {
   plans <- plans %>%
     mutate(
       plan_dev = plan_parity(map),
       comp_polsby = comp_polsby(plans, map),
-      phase_commute = phase_commute(plans, map, current = map$high25,
+      phase_commute = phase_commute(plans, map, current = current,
                                     schools = schools,
                                     commute_times = commute_times),
       max_commute = max_commute(plans, map, schools = schools,
                                 commute_times = commute_times)
     )
   
-  split_cols <- names(map)[tidyselect::eval_select(tidyselect::any_of(c("elem25", "middle25")), map)]
-  for (col in split_cols) {
-    if (col == "elem25") {
-      plans <- plans |>
-        dplyr::mutate(elem_splits = redistmetrics::splits_admin(plans, map, elem25))
-    } else if (col == "middle25") {
-      plans <- plans |>
-        dplyr::mutate(middle_splits = redistmetrics::splits_admin(plans, map, middle25))
-    } else {
-      plans <- plans |>
-        dplyr::mutate("{col}_splits" := redistmetrics::splits_admin(plans, map, map[[col]]))
-    }
+  if (level == "middle") {
+    plans <- plans |>
+      dplyr::mutate(elem_splits = redistmetrics::splits_admin(plans, map, elem25))
+  } else if (level == "high") {
+    plans <- plans |>
+      dplyr::mutate(middle_splits = redistmetrics::splits_admin(plans, map, middle25))
   }
   
   plans
@@ -288,4 +303,6 @@ projected_average_heatmap <- function(plans, map, schools_idx, commute_times, le
     scale_fill_viridis_c("Average Simulated - \nCurrent Commute \n(seconds)") +
     theme_bw() +
     geom_sf(data = ffx_hs)
+  
+  p_tracts
 }

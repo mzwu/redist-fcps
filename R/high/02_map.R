@@ -26,7 +26,7 @@ schools_capacity <- schools_info$capacity
 
 if (!file.exists(here("data-raw/high25/commute_times_hs.rds"))) {
   # calculate commute times
-  commute_times <- get_commute_matrix(ffx_shp, schools_idx - 1L, profile = "car", 
+  commute_times <- get_commute_matrix(ffx_shp, schools_idx, profile = "car", 
                                       server = "http://127.0.0.1:5000", 
                                       src_chunk = 100, dst_chunk = 140)
   
