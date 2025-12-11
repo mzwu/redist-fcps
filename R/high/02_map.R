@@ -14,7 +14,7 @@ ffx_hs <- ffx_hs %>%
   filter(OBJECTID %in% capacity$object_id_school)
 
 # make redist_map
-map <- redist_map(ffx_shp, pop_tol = 0.05,
+map <- redist_map(ffx_shp, pop_tol = 0.9,
                   existing_plan = high25, adj = ffx_shp$adj)
 attr(map, "analysis_name") <- "HS_25"
 attr(map, "shp") <- ffx_shp

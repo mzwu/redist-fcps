@@ -98,9 +98,10 @@ drop_duplicate_schools <- function(plans, schools_idx) {
   })
   
   # keep only valid plans (no conflicts)
-  mat_valid <- mat[, !has_conflict, drop = FALSE]
+  keep_plan <- which(!has_conflict) - 1 # first plan is enacted
   
-  mat_valid
+  plans %>%
+    filter((draw %in% c("elem25", "middle25", "high25")) | (draw %in% keep_plan))
 }
 
 #' Add starter lower level plans to serve as counties
