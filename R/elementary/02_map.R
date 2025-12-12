@@ -15,7 +15,7 @@ ffx_es <- ffx_es %>%
 
 # make redist_map
 # current ES capacity min/max is 384/1066 so pop_tol=(1066-384)/1066
-map <- redist_map(ffx_shp, pop_tol = 0.64,
+map <- redist_map(ffx_shp, pop_tol = 1.1,
                   existing_plan = elem25, adj = ffx_shp$adj)
 attr(map, "analysis_name") <- "ES_25"
 attr(map, "shp") <- ffx_shp

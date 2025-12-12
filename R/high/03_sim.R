@@ -10,7 +10,7 @@ constr <- redist_constr(map) %>%
   #   only_districts = TRUE
   # ) %>%
   add_constr_incumbency(
-    strength = 99,
+    strength = 300,
     incumbents = schools_idx,
     #only_districts = TRUE
   # ) %>%

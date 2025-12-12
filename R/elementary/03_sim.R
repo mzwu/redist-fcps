@@ -15,12 +15,11 @@ constr <- redist_constr(map) %>%
   #   schools_capacity = schools_capacity
   )
 
-plans <- redist_smc(
+plans <- redist_mergesplit(
   map,
   nsims = 2500,
-  runs = 1L,
+  ncores = 60,
   #constraints = constr,
-  ncores = 60L,
   verbose = T
 )
 
