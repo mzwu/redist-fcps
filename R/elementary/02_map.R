@@ -19,9 +19,18 @@ map <- redist_map(ffx_shp, pop_tol = 1.1,
                   existing_plan = elem25, adj = ffx_shp$adj)
 attr(map, "analysis_name") <- "ES_25"
 attr(map, "shp") <- ffx_shp
+total_pop <- sum(map$pop)
+ndists <- map$elem25 %>% unique() %>% length()
+attr(map, "pop_bounds") <- c(1, (total_pop + 1) / 2, total_pop - ndists + 1)
 
 # get school row indices of map and capacities
 schools_info <- get_schools_info(ffx_es, map, ffx_shp, capacity, "elem")
+
+# fix Fort Belvoir Primary school to be in the block adjacent because it's currently in the same block as Fort Belvoir Upper
+new_row <- which(map$geoid20 == "510594219002006")
+schools_info$map_idx[schools_info$name == "Fort Belvoir Primary"] <- new_row
+
+# get data
 schools_idx <- schools_info$map_idx
 schools_capacity <- schools_info$capacity
 
@@ -35,3 +44,36 @@ if (!file.exists(here("data-raw/elem25/commute_times_es.rds"))) {
 } else {
   commute_times <- read_rds(here("data-raw/elem25/commute_times_es.rds"))
 }
+
+# create initial plan that has 1 school per district
+init_plan <- rep(0, nrow(map))
+# assign each school to a distinct district that corresponds to their actual assignment
+init_plan[schools_info$map_idx] <- schools_info$elem25
+# BFS
+bfs_assign <- function(map, start, assignments) {
+  visited <- c(start)
+  queue <- c(start)
+  plan <- c(assignments)
+  
+  while (length(queue) > 0) {
+    node <- queue[1]
+    queue <- queue[-1]
+    
+    visited <- c(visited, node)
+      
+    # get all adjacent neighbors
+    neighbors <- as.integer(unlist(map$adj[[node]])) + 1
+      
+    # assign unassigned neighbors to the same district as the node we discovered them from
+    unassigned_nbrs <- setdiff(neighbors, visited)
+    plan[unassigned_nbrs] <- plan[node]
+      
+    # add to queue
+    queue <- c(queue, unassigned_nbrs)
+  }
+  
+  plan
+}
+
+init_plan <- bfs_assign(map, schools_info$map_idx, init_plan)
+map$init_plan <- init_plan
