@@ -77,3 +77,10 @@ bfs_assign <- function(map, start, assignments) {
 
 init_plan <- bfs_assign(map, schools_info$map_idx, init_plan)
 map$init_plan <- init_plan
+
+map[c(3065, 4776, 2017),]$init_plan <- 116
+map[c(364),]$init_plan <- 91
+map[c(101),]$init_plan <- 84
+map[c(7105, 5472),]$init_plan <- 108
+map[c(791, 5441, 3446),]$init_plan <- 15
+map[c(8887, 3884, 7082, 3205, 3561, 4933, 3808, 2941, 8245, 6168, 7421, 4180, 4020),]$init_plan <- 44
