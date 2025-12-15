@@ -1,7 +1,7 @@
 # Unique ID for each row, will use later to reconnect pieces
 map$row_id <- 1:nrow(map)
 
-nsims <- 2500
+nsims <- 7500
 sa_region <- 0.99
 sa <- 0.95
 
@@ -19,9 +19,14 @@ z <- geomander::seam_geom(map$adj, map, admin = "cluster_edge", seam = c(0, 1))
 z <- z[z$cluster_edge == 1, ]
 border_idxs <- which(herndon_map$row_id %in% z$row_id)
 
+# Herndon school indices
 school_blocks <- st_contains(herndon_map, schools_info)
 herndon_map$school <- lengths(school_blocks) > 0
 herndon_schools <- which(herndon_map$school == TRUE)
+
+# Herndon commute times
+herndon_elem25 <- unique(unlist(school_blocks[herndon_map$school]))
+herndon_commute <- commute_times[, herndon_elem25]
 
 # may need to subset schools_idx to only schools in this region
 constr <- redist_constr(herndon_map) %>%
@@ -32,7 +37,7 @@ constr <- redist_constr(herndon_map) %>%
   #   commute_times = commute_times
   # ) %>%
   add_constr_incumbency(
-    strength = 9,
+    strength = 20,
     incumbents = herndon_schools
     # ) %>%
     # add_constr_capacity(
@@ -44,7 +49,7 @@ constr <- redist_constr(herndon_map) %>%
     ifelse(any(plan[border_idxs] == 0), 0, 1)
   })
 
-n_steps <- (sum(herndon_map$pop)/attr(map, "pop_bounds")[2]) %>% floor() - 1
+n_steps <- herndon_elem25 %>% length() - 1
 
 # TODO: set seeds
 herndon_plans <- redist_smc(
