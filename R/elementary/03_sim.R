@@ -1,4 +1,25 @@
-constr <- redist_constr(map) %>%
+# Unique ID for each row, will use later to reconnect pieces
+map$row_id <- 1:nrow(map)
+
+nsims <- 2500
+sa_region <- 0.99
+sa <- 0.95
+
+# 140 districts is too large of a problem
+# so, use SMC by cluster/region
+
+########################################################################
+# Region 1: Herndon Pyramid
+herndon_map <- map %>% filter(region == 1)
+
+# setup for cluster constraint
+map <- map %>%
+  mutate(cluster_edge = ifelse(row_id %in% herndon_map$row_id, 1, 0))
+z <- geomander::seam_geom(map$adj, map, admin = "cluster_edge", seam = c(0, 1))
+z <- z[z$cluster_edge == 1, ]
+border_idxs <- which(herndon_map$row_id %in% z$row_id)
+
+constr <- redist_constr(herndon_map) %>%
   # add_constr_phase_commute(
   #   strength = 1,
   #   current = map$elem25,
@@ -8,34 +29,28 @@ constr <- redist_constr(map) %>%
   add_constr_incumbency(
     strength = 99,
     incumbents = schools_idx
-  # ) %>%
-  # add_constr_capacity(
-  #   strength = 1,
-  #   schools = schools_idx,
-  #   schools_capacity = schools_capacity
-  )
+    # ) %>%
+    # add_constr_capacity(
+    #   strength = 1,
+    #   schools = schools_idx,
+    #   schools_capacity = schools_capacity
+  ) %>%
+  add_constr_custom(strength = 10, function(plan, distr) {
+    ifelse(any(plan[border_idxs] == 0), 0, 1)
+  })
 
-plans <- redist_mergesplit(
-  map,
-  nsims = 2500,
-  ncores = 60,
-  constraints = constr,
-  init_plan = map$init_plan,
-  verbose = T
+n_steps <- (sum(herndon_map$pop)/attr(map, "pop_bounds")[2]) %>% floor()
+
+# TODO: set seeds
+herndon_plans <- redist_smc(
+  herndon_map,
+  nsims = nsims, 
+  #runs = 2L,
+  seq_alpha = sa_region,
+  constraints = constr, 
+  #pop_temper = 0.01, 
+  verbose = TRUE
 )
-
-# plans <- redist_smc(
-#   map,
-#   nsims = 2500, runs = 1L,
-#   ncores = 60,
-#   counties = tractce20,
-#   constraints = constr,
-#   pop_temper = 0.05,
-#   sampling_space = "linking_edge",
-#   ms_params = list(frequency = 1L, mh_accept_per_smc = 10),
-#   split_params = list(splitting_schedule = "any_valid_sizes"),
-#   verbose = T
-# )
 
 plans <- plans %>%
   add_reference(map$elem25, "elem25")

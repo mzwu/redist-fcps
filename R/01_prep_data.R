@@ -43,6 +43,12 @@ if (!file.exists(here(shp_path))) {
       geo_match(ffx_blocks, ffx_high, method = "area")])
   ffx_blocks$high25 <- vctrs::vec_group_id(ffx_blocks$high25_id)
   
+  # add region/pyramid data
+  ffx_blocks <- ffx_blocks %>%
+    left_join(ffx_elementary %>% select(OBJECTID, REGION) %>% st_drop_geometry(), 
+              by = join_by(elem25_id == OBJECTID)) %>%
+    rename(region = REGION)
+  
   # clean up columns
   ffx_blocks <- ffx_blocks %>%
     janitor::clean_names()
@@ -50,7 +56,7 @@ if (!file.exists(here(shp_path))) {
   # simplifies geometry for faster processing, plotting, and smaller shapefiles
   if (requireNamespace("rmapshaper", quietly = TRUE)) {
     ffx_blocks <- rmapshaper::ms_simplify(ffx_blocks, keep = 0.05,
-                                        keep_shapes = TRUE) %>%
+                                          keep_shapes = TRUE) %>%
       suppressWarnings()
   }
   ffx_blocks <- ffx_blocks %>% 
