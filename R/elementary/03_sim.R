@@ -1,7 +1,7 @@
 # Unique ID for each row, will use later to reconnect pieces
 map$row_id <- 1:nrow(map)
 
-nsims <- 7500
+nsims <- 1e4
 sa_region <- 0.99
 sa <- 0.95
 
@@ -27,6 +27,7 @@ herndon_schools <- which(herndon_map$school == TRUE)
 # Herndon commute times
 herndon_elem25 <- unique(unlist(school_blocks[herndon_map$school]))
 herndon_commute <- commute_times[, herndon_elem25]
+herndon_capacity <- capacity[herndon_elem25, ]
 
 # may need to subset schools_idx to only schools in this region
 constr <- redist_constr(herndon_map) %>%
@@ -39,11 +40,11 @@ constr <- redist_constr(herndon_map) %>%
   add_constr_incumbency(
     strength = 20,
     incumbents = herndon_schools
-    # ) %>%
-    # add_constr_capacity(
-    #   strength = 1,
-    #   schools = schools_idx,
-    #   schools_capacity = schools_capacity
+    ) %>%
+  add_constr_capacity(
+    strength = 1,
+    schools = herndon_schools,
+    schools_capacity = herndon_capacity$capacity
   ) %>%
   add_constr_custom(strength = 10, function(plan, distr) {
     ifelse(any(plan[border_idxs] == 0), 0, 1)
