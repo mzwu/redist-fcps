@@ -29,7 +29,6 @@ herndon_elem25 <- unique(unlist(school_blocks[herndon_map$school]))
 herndon_commute <- commute_times[, herndon_elem25]
 herndon_capacity <- capacity[herndon_elem25, ]
 
-# may need to subset schools_idx to only schools in this region
 constr <- redist_constr(herndon_map) %>%
   # add_constr_phase_commute(
   #   strength = 1,
