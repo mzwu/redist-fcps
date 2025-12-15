@@ -19,6 +19,11 @@ z <- geomander::seam_geom(map$adj, map, admin = "cluster_edge", seam = c(0, 1))
 z <- z[z$cluster_edge == 1, ]
 border_idxs <- which(herndon_map$row_id %in% z$row_id)
 
+school_blocks <- st_contains(herndon_map, schools_info)
+herndon_map$school <- lengths(school_blocks) > 0
+herndon_schools <- which(herndon_map$school == TRUE)
+
+# may need to subset schools_idx to only schools in this region
 constr <- redist_constr(herndon_map) %>%
   # add_constr_phase_commute(
   #   strength = 1,
@@ -27,8 +32,8 @@ constr <- redist_constr(herndon_map) %>%
   #   commute_times = commute_times
   # ) %>%
   add_constr_incumbency(
-    strength = 99,
-    incumbents = schools_idx
+    strength = 9,
+    incumbents = herndon_schools
     # ) %>%
     # add_constr_capacity(
     #   strength = 1,
@@ -39,13 +44,15 @@ constr <- redist_constr(herndon_map) %>%
     ifelse(any(plan[border_idxs] == 0), 0, 1)
   })
 
-n_steps <- (sum(herndon_map$pop)/attr(map, "pop_bounds")[2]) %>% floor()
+n_steps <- (sum(herndon_map$pop)/attr(map, "pop_bounds")[2]) %>% floor() - 1
 
 # TODO: set seeds
 herndon_plans <- redist_smc(
   herndon_map,
   nsims = nsims, 
   #runs = 2L,
+  ncores = 60,
+  n_steps = n_steps,
   seq_alpha = sa_region,
   constraints = constr, 
   #pop_temper = 0.01, 
