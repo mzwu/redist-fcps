@@ -34,12 +34,12 @@ get_schools_info <- function(schools, map, shp, capacity, level) {
   # get row IDs of school locations in redist_map
   schools_sf <- st_as_sf(schools, coords = c("lon", "lat"), crs = 4326)
   schools_sf <- st_transform(schools_sf, st_crs(map))
-  map_rowid <- map |> mutate(tract_row = row_number())
+  map_rowid <- map |> mutate(block_row = row_number())
   
   # add row number and capacity data
   schools_info <- schools_sf %>%
     st_join(
-      map_rowid["tract_row"],
+      map_rowid["block_row"],
       join = sf::st_within
     ) %>%
     merge(
@@ -60,7 +60,7 @@ get_schools_info <- function(schools, map, shp, capacity, level) {
   # select relevant rows in ascending ID order
   schools_info <- schools_info %>%
     select(
-      map_idx = tract_row,
+      map_idx = block_row,
       paste0(level, "25"),
       type,
       name,
@@ -91,7 +91,7 @@ drop_duplicate_schools <- function(plans, schools_idx) {
   # rows with schools only
   school_assign <- mat[schools_idx, , drop = FALSE]
   
-  # mark plans where any district repeats among the school tracts
+  # mark plans where any district repeats among the school blocks
   has_conflict <- apply(school_assign, 2, function(x) {
     x2 <- na.omit(x)
     any(duplicated(x2))
@@ -118,7 +118,7 @@ drop_duplicate_schools_regions <- function(plans, schools_idx) {
   # rows with schools only
   school_assign <- mat[schools_idx, , drop = FALSE]
   
-  # mark plans where any district repeats among the school tracts
+  # mark plans where any district repeats among the school blocks
   has_conflict <- apply(school_assign, 2, function(x) {
     x2 <- x[x != 0 & !is.na(x)]
     any(duplicated(x2))
@@ -267,18 +267,18 @@ IIJJKK"
   invisible(out_path)
 }
 
-#' Plot heatmap of each tract's average sim - enacted commute distance to assigned school
+#' Plot heatmap of each block's average sim - enacted commute distance to assigned school
 #'
 #' @param plans a `redist_plans` object
 #' @param map a `redist_map` object
 #' @param schools_idx a vector containing the map indices of each school
-#' @param commute_times a matrix containing commute distances between each tract
+#' @param commute_times a matrix containing commute distances between each block
 #'
 #' @return a heatmap plot
 #' @export
 projected_average_heatmap <- function(plans, map, schools_idx, commute_times, level) {
   if (level == "elem") {
-    tracts <- map %>%
+    blocks <- map %>%
       mutate(same_area = map(elem25, ~ as.integer(which(map$elem25 == .x))),
              school_row = map_int(
                same_area,
@@ -289,7 +289,7 @@ projected_average_heatmap <- function(plans, map, schools_idx, commute_times, le
       select(-same_area)
   }
   else if (level == "middle") {
-    tracts <- map %>%
+    blocks <- map %>%
       mutate(same_area = map(middle25, ~ as.integer(which(map$middle25 == .x))),
              school_row = map_int(
                same_area,
@@ -300,7 +300,7 @@ projected_average_heatmap <- function(plans, map, schools_idx, commute_times, le
       select(-same_area)
   }
   else if (level == "high") {
-    tracts <- map %>%
+    blocks <- map %>%
       mutate(same_area = map(high25, ~ as.integer(which(map$high25 == .x))),
              school_row = map_int(
                same_area,
@@ -313,24 +313,24 @@ projected_average_heatmap <- function(plans, map, schools_idx, commute_times, le
   
   # compute average commute time across simulated plans
   mat <- as.matrix(plans)
-  n_tracts <- nrow(mat)
+  n_blocks <- nrow(mat)
   n_plans <- ncol(mat)
-  tract_commutes <- matrix(NA, nrow = n_tracts, ncol = n_plans)
+  block_commutes <- matrix(NA, nrow = n_blocks, ncol = n_plans)
   for (p in 1:n_plans) {
     districts <- mat[, p]
     school_districts <- mat[schools_idx, p]
     school_cols <- match(districts, school_districts)
-    tract_commutes[, p] <- commute_times[cbind(1:n_tracts, school_cols)]
+    block_commutes[, p] <- commute_times[cbind(1:n_blocks, school_cols)]
   }
-  avg_commute_per_tract <- rowMeans(tract_commutes, na.rm = TRUE)
-  tracts$avg_sim_commute <- avg_commute_per_tract
+  avg_commute_per_block <- rowMeans(block_commutes, na.rm = TRUE)
+  blocks$avg_sim_commute <- avg_commute_per_block
   
-  p_tracts <- tracts %>%
+  p_blocks <- blocks %>%
     ggplot() +
     geom_sf(aes(fill = avg_sim_commute - current_commute)) +
     scale_fill_viridis_c("Average Simulated - \nCurrent Commute \n(seconds)") +
     theme_bw() +
     geom_sf(data = ffx_hs)
   
-  p_tracts
+  p_blocks
 }

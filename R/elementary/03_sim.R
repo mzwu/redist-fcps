@@ -30,12 +30,12 @@ herndon_commute <- commute_times[, herndon_elem25]
 herndon_capacity <- capacity[herndon_elem25, ]
 
 constr <- redist_constr(herndon_map) %>%
-  # add_constr_phase_commute(
-  #   strength = 1,
-  #   current = map$elem25,
-  #   schools = schools_idx,
-  #   commute_times = commute_times
-  # ) %>%
+  add_constr_phase_commute(
+    strength = 1,
+    current = herndon_map$elem25,
+    schools = herndon_schools,
+    commute_times = herndon_commute
+  ) %>%
   add_constr_incumbency(
     strength = 100,
     incumbents = herndon_schools
@@ -66,6 +66,8 @@ herndon_plans <- redist_smc(
 
 herndon_plans <- drop_duplicate_schools_regions(herndon_plans, herndon_schools)
 
+write_rds(herndon_plans, here("data-raw/elem25/plans/herndon_plans.rds"), compress = "gz")
+
 # TODO: repeat for other regions
 
 # TODO: combine everything together
@@ -78,4 +80,4 @@ plans <- match_numbers(plans, "elem25")
 # keep only plans where each school is in a distinct district
 #plans <- drop_duplicate_schools(plans, schools_idx)
 
-write_rds(plans, here("data-raw/elem25/plans/plans_es_noconstr_incumbent99.rds"), compress = "gz")
+write_rds(plans, here("data-raw/elem25/plans/plans_es.rds"), compress = "gz")
