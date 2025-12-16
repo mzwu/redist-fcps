@@ -13,16 +13,13 @@ capacity <- read_csv("data/school_capacities.csv") %>%
 ffx_ms <- ffx_ms %>%
   filter(OBJECTID %in% capacity$object_id_school)
 
-# Sample 5 elementary plans as starter plans
-# elem_plans <- read_rds(here("data-raw/elem25/plans/plans_es.rds"))
-# 
-# plans5 <- elem_plans %>%
-#   filter(draw != "elem25") %>%
-#   filter(draw %in% sample(unique(draw), 5))
-# 
-# draws5 <- as.numeric(match(levels(plans5$draw), elem_plans$draw %>% unique()))
-# 
-# ffx_shp <- add_starter_plans(ffx_shp, elem_plans, draws5, "elem")
+# sample 5 elementary plans as starter plans
+elem_plans <- read_rds(here("data-raw/elem25/plans/plans_es.rds"))
+plans5 <- elem_plans %>%
+  filter(draw != "elem25") %>%
+  filter(draw %in% sample(unique(draw), 5))
+draws5 <- as.numeric(match(levels(plans5$draw), elem_plans$draw %>% unique()))
+ffx_shp <- add_starter_plans(ffx_shp, elem_plans, draws5, "elem")
 
 # make redist_map
 map <- redist_map(ffx_shp, pop_tol = 0.5,

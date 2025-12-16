@@ -43,7 +43,7 @@ if (!file.exists(here(shp_path))) {
       geo_match(ffx_blocks, ffx_high, method = "area")])
   ffx_blocks$high25 <- vctrs::vec_group_id(ffx_blocks$high25_id)
   
-  # add region/pyramid data
+  # add region data
   ffx_blocks <- ffx_blocks %>%
     left_join(ffx_elementary %>% select(OBJECTID, REGION) %>% st_drop_geometry(), 
               by = join_by(elem25_id == OBJECTID)) %>%

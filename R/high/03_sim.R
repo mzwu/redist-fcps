@@ -63,3 +63,5 @@ N <- 2500
 plans <- rbind(plans1,
                plans2 %>% subset_sampled() %>% mutate(draw = factor(as.integer(draw) + 1 * N)),
                plans3 %>% subset_sampled() %>% mutate(draw = factor(as.integer(draw) + 2 * N)))
+
+write_rds(plans, here("data-raw/high25/plans/plans_hs.rds"))

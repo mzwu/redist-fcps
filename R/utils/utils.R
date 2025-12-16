@@ -1,9 +1,12 @@
-#' Get a map between official school area IDs and normalized (1-ndist) IDs
+#' Create map/translation between official school area IDs and normalized (1 to 
+#' ndist) IDs
 #'
-#' @param shp a shapefile object with both official school area ID and normalized ID
-#' @param level either elem, middle, or high
+#' @param shp a shapefile object with both official school area ID (level25_id) 
+#'        and normalized ID (level25)
+#' @param level a string of either "elem", "middle", or "high"
 #'
-#' @return a data frame with 2 columns, one with the official school district ID and the other with a normalized ID
+#' @return a data frame with 2 columns, one with the official school district ID 
+#'         (level25_id) and the other with a normalized ID (level25)
 get_schools_id_map <- function(shp, level) {
   shp %>%
     st_drop_geometry() %>%
@@ -14,16 +17,18 @@ get_schools_id_map <- function(shp, level) {
     unique()
 }
 
-#' Get the indices of rows in the map that correspond to locations of schools, and capacity of each school
-#' in order of increasing school area ID
+#' Get the indices of rows in the map that correspond to locations of schools, 
+#' and capacity of each school in order of increasing school area ID
 #'
 #' @param schools an `sf` object with a `geom_point` column denoting school locations
 #' @param map a `redist_map` object
 #' @param shp a shapefile object with both official school area ID and normalized ID
-#' @param capacity a dataframe containing the capacity, name, and ID (mapping to schools) of each school
-#' @param level either elem, middle, or high
+#' @param capacity a dataframe containing the capacity, name, and ID 
+#'                 (school and area ID) of each school
+#' @param level a string of either "elem", "middle", or "high"
 #'
-#' @return a vector containing the map indices of each school
+#' @return an `sf` object containing the normalized ID, type (ES/MS/HS), name, capacity,
+#'          map_idx (the row number in map that contains the school, 1-indexed)
 #' @export
 get_schools_info <- function(schools, map, shp, capacity, level) {
   # get longitude and latitude for each school
@@ -31,7 +36,7 @@ get_schools_info <- function(schools, map, shp, capacity, level) {
     mutate(lon = st_coordinates(.)[,1],
            lat = st_coordinates(.)[,2])
   
-  # get row IDs of school locations in redist_map
+  # get row IDs of school locations in map
   schools_sf <- st_as_sf(schools, coords = c("lon", "lat"), crs = 4326)
   schools_sf <- st_transform(schools_sf, st_crs(map))
   map_rowid <- map |> mutate(block_row = row_number())
@@ -69,7 +74,7 @@ get_schools_info <- function(schools, map, shp, capacity, level) {
     ) %>%
     arrange(.data[[paste0(level, "25")]])
   
-  # 1-indexed
+  # ensure valid integers
   schools_info$map_idx <- schools_info$map_idx |> as.integer()
   schools_info <- schools_info %>%
     filter(!is.na(map_idx))
@@ -97,14 +102,17 @@ drop_duplicate_schools <- function(plans, schools_idx) {
     any(duplicated(x2))
   })
   
-  # keep only valid plans (no conflicts)
-  keep_plan <- which(!has_conflict) - 1 # first plan is enacted
+  # determine valid plans (no conflicts)
+  # first plan is enacted so index i is draw i-1
+  keep_plan <- which(!has_conflict) - 1
   
+  # keep valid plans and enacted plan
   plans %>%
     filter((draw %in% c("elem25", "middle25", "high25")) | (draw %in% keep_plan))
 }
 
-#' Filter down to only plans where each school is assigned to a distinct district - region version
+#' Filter down to only plans where each school is assigned to a distinct 
+#' district - region version
 #'
 #' @param plans a `redist_plans` object
 #' @param schools_idx a vector containing the map indices of each school
@@ -124,19 +132,20 @@ drop_duplicate_schools_regions <- function(plans, schools_idx) {
     any(duplicated(x2))
   })
   
-  # keep only valid plans (no conflicts)
+  # determine valid plans (no conflicts)
   keep_plan <- which(!has_conflict)
   
+  # keep valid plans
   plans %>%
-    filter((draw %in% c("elem25", "middle25", "high25")) | (draw %in% keep_plan))
+    filter(draw %in% keep_plan)
 }
 
 #' Add starter lower level plans to serve as counties
 #'
-#' @param shp shapefile object
-#' @param lower_plans `redist_plans` object with all plans
-#' @param draws specific draws to add as starters
-#' @param level "elem" or "middle" describing the lower level
+#' @param shp a shapefile object
+#' @param lower_plans a `redist_plans` object with all lower level plans
+#' @param draws a vector of integers specifying which draws to add as starters
+#' @param level a string of "elem" or "middle" describing the lower level
 #'
 #' @return a filtered down `redist_plans` object
 #' @export
@@ -152,32 +161,48 @@ add_starter_plans <- function(shp, lower_plans, draws, level) {
 #'
 #' @param plans a `redist_plans` object
 #' @param map a `redist_map` object
-#' @param current enacted plan for level of current sims
-#' @param schools indices of school locations in map
-#' @param commute_times matrix of commute times from blocks to schools
+#' @param current enacted plan for the current level of sims
+#' @param schools a vector of indices of school locations in map
+#' @param commute_times a matrix of commute times from blocks to schools
+#' @param capacity a vector of enrollment capacities for each school
 #' @param level string describing level of current sims, "elem" or "middle" or "high"
 #' @param ... additional summary statistics to compute
 #'
 #' @return a modified `redist_plans` object
 #' @export
-add_summary_stats <- function(plans, map, current, schools, commute_times, level, ...) {
+add_summary_stats <- function(plans, map, current, schools, commute_times, capacity, level, ...) {
   plans <- plans %>%
     mutate(
       plan_dev = plan_parity(map),
       comp_polsby = comp_polsby(plans, map),
-      phase_commute = phase_commute(plans, map, current = current,
+      phase_commute = phase_commute(plans, map, 
+                                    current = current,
                                     schools = schools,
                                     commute_times = commute_times),
-      max_commute = max_commute(plans, map, schools = schools,
-                                commute_times = commute_times)
+      max_commute = max_commute(plans, map, 
+                                schools = schools,
+                                commute_times = commute_times),
+      capacity_util = capacity_util(plans, 
+                                    schools_capacity = capacity, 
+                                    pop = map$pop),
+      schools_outside_zone = schools_outside_zone(plans,
+                                                  schools = schools),
+      attendance_islands = attendance_islands(plans)
     )
   
+  # lower level attendance area splits and split feeder counts
   if (level == "middle") {
     plans <- plans |>
-      dplyr::mutate(elem_splits = redistmetrics::splits_admin(plans, map, elem25))
+      dplyr::mutate(elem_splits = redistmetrics::splits_admin(plans, map, elem25)) |>
+      dplyr::mutate(elem_split_feeders = split_feeders(plans,
+                                                       lower = map$elem25,
+                                                       pop = map$pop))
   } else if (level == "high") {
     plans <- plans |>
-      dplyr::mutate(middle_splits = redistmetrics::splits_admin(plans, map, middle25))
+      dplyr::mutate(middle_splits = redistmetrics::splits_admin(plans, map, middle25)) |>
+      dplyr::mutate(middle_split_feeders = split_feeders(plans,
+                                                         lower = map$middle25,
+                                                         pop = map$pop))
   }
   
   plans
@@ -197,10 +222,10 @@ validate_analysis <- function(plans, map) {
   p_div <- plan_div %>% 
     ggplot(aes(x = plan_div)) +
     geom_histogram(bins = 40) +
-    labs(x = "VI distance", title = "Plan diversity") +
+    labs(x = "VI Distance", title = "Plan Diversity") +
     theme_bw()
   
-  p_dev <- hist(plans, plan_dev, bins = 40) + labs(title = "Population deviation") + theme_bw()
+  p_dev <- hist(plans, plan_dev, bins = 40) + labs(title = "Population Deviation") + theme_bw()
   
   p_comp <- plot(plans, comp_polsby, geom = "boxplot") + labs(title = "Compactness: Polsby-Popper") + theme_bw()
   
@@ -208,21 +233,31 @@ validate_analysis <- function(plans, map) {
   
   p_max_commute <- plot(plans, max_commute, geom = "boxplot") + labs(title = "Max Commute") + theme_bw()
   
-  if ("elem_splits" %in% names(plans)) {
-    p_split1 <- hist(plans, elem_splits) + labs(title = "Elementary feeder splits") + theme_bw()
-  } else p_split1 <- patchwork::plot_spacer()
-  if ("middle_splits" %in% names(plans)) {
-    p_split2 <- hist(plans, middle_splits) + labs(title = "Middle feeder splits") + theme_bw()
-  } else p_split2 <- patchwork::plot_spacer()
+  p_capacity <- plot(plans, capacity_util, geom = "boxplot") + labs(title = "Capacity Utilization") + theme_bw()
+  
+  # will these histograms work if each district in each plan has a different value?
+  # should these metrics just be 1 value (sum over districts) for each plan?
+  p_outside_zone <- hist(plans, schools_outside_zone, bins = 5) + labs(title = "Schools Outside Zone") + theme_bw()
+  
+  p_island <- hist(plans, attendance_islands, bins = 5) + labs(title = "Attendance Islands") + theme_bw()
+  
+  if ("elem_split_feeders" %in% names(plans)) {
+    p_split <- hist(plans, elem_split_feeders) + labs(title = "Elementary Split Feeders") + theme_bw()
+  } else if ("middle_split_feeders" %in% names(plans)) {
+    p_split <- hist(plans, middle_split_feeders) + labs(title = "Middle Split Feeders") + theme_bw()
+  } else {
+    p_split <- patchwork::plot_spacer()
+  }
   
   enacted_summary <- plans %>%
     filter(draw == attr(map, "existing_col")) %>%
-    select(district, comp_polsby, phase_commute, max_commute) %>%
+    select(district, comp_polsby, phase_commute, max_commute, capacity_util) %>%
     mutate(
       district_label = str_pad(district, width = 2, pad = '0'),
       compact_rank = rank(comp_polsby),
       commute_rank = rank(phase_commute),
       max_commute_rank = rank(max_commute),
+      capacity_rank = rank(capacity_util)
     )
   
   p_comp <- p_comp +
@@ -239,30 +274,71 @@ validate_analysis <- function(plans, map) {
               alpha = 0.8,
               color = "red")
   
+  p_commute <- p_commute +
+    geom_text(data = enacted_summary,
+              aes(
+                x = commute_rank,
+                label = district_label
+              ),
+              vjust = 3,
+              y = Inf,
+              size = 2.5,
+              fontface = "bold",
+              lineheight = 0.8,
+              alpha = 0.8,
+              color = "red")
+  
+  p_max_commute <- p_max_commute +
+    geom_text(data = enacted_summary,
+              aes(
+                x = max_commute_rank,
+                label = district_label
+              ),
+              vjust = 3,
+              y = Inf,
+              size = 2.5,
+              fontface = "bold",
+              lineheight = 0.8,
+              alpha = 0.8,
+              color = "red")
+  
+  p_capacity <- p_capacity +
+    geom_text(data = enacted_summary,
+              aes(
+                x = capacity_rank,
+                label = district_label
+              ),
+              vjust = 3,
+              y = Inf,
+              size = 2.5,
+              fontface = "bold",
+              lineheight = 0.8,
+              alpha = 0.8,
+              color = "red")
+  
   draws <- sample(levels(subset_sampled(plans)$draw), 3)
   p_ex1 <- redist.plot.plans(plans, draws[1], map)
   p_ex2 <- redist.plot.plans(plans, draws[2], map)
   p_ex3 <- redist.plot.plans(plans, draws[3], map)
   
   layout <- "
-AAABBB
-CCCCCC
-DDDDDD
-EEEEEE
-FFFFFF
-GGGHHH
-IIJJKK
-IIJJKK"
+AAABBBCCC
+DDDDDDEEE
+FFFFFFGGG
+HHHHHHIII
+JJJJJJJJJ
+KKKLLLMMM"
   
   p <- patchwork::wrap_plots(A = p_weights, B = p_div, C = p_dev, 
-                             D = p_comp, E = p_commute, F = p_max_commute,
-                             G = p_split1, H = p_split2,
-                             I = p_ex1, J = p_ex2, K = p_ex3, design = layout) +
+                             D = p_comp, E = p_split, F = p_commute,
+                             G = p_outside_zone, H = p_max_commute, I = p_island,
+                             J = p_capacity,
+                             K = p_ex1, L = p_ex2, M = p_ex3, design = layout) +
     patchwork::plot_annotation(title = str_c(plans$draw[1], " Validation")) +
     patchwork::plot_layout(guides = "collect")
   
   out_path <- here(str_glue("data-raw/{plans$draw[1]}/validation/validation_{format(Sys.time(), '%Y%m%d_%H%M')}.png"))
-  ggsave(out_path, plot = p, height = 15, width = 10)
+  ggsave(out_path, plot = p, height = 15, width = 15)
   if (rstudioapi::isAvailable()) rstudioapi::viewer(out_path)
   invisible(out_path)
 }
@@ -272,43 +348,32 @@ IIJJKK"
 #' @param plans a `redist_plans` object
 #' @param map a `redist_map` object
 #' @param schools_idx a vector containing the map indices of each school
+#'                    (ordered by normalized ID)
 #' @param commute_times a matrix containing commute distances between each block
+#'                      and each school
+#' @param level a string of "elem", "middle", or "high" denoting the current level
 #'
 #' @return a heatmap plot
 #' @export
 projected_average_heatmap <- function(plans, map, schools_idx, commute_times, level) {
+  # compute commute times for each block in enacted plan
   if (level == "elem") {
     blocks <- map %>%
-      mutate(same_area = map(elem25, ~ as.integer(which(map$elem25 == .x))),
-             school_row = map_int(
-               same_area,
-               ~ { hits <- which(schools_idx %in% .x)
-               if (length(hits)) hits[1] else NA_integer_ }
-             ),
-             current_commute = commute_times[cbind(row_number(), school_row)]) %>%
-      select(-same_area)
+      mutate(
+        current_commute = commute_times[row_number(), schools_idx[elem25]]
+      )
   }
   else if (level == "middle") {
     blocks <- map %>%
-      mutate(same_area = map(middle25, ~ as.integer(which(map$middle25 == .x))),
-             school_row = map_int(
-               same_area,
-               ~ { hits <- which(schools_idx %in% .x)
-               if (length(hits)) hits[1] else NA_integer_ }
-             ),
-             current_commute = commute_times[cbind(row_number(), school_row)]) %>%
-      select(-same_area)
+      mutate(
+        current_commute = commute_times[row_number(), schools_idx[middle25]]
+      )
   }
   else if (level == "high") {
     blocks <- map %>%
-      mutate(same_area = map(high25, ~ as.integer(which(map$high25 == .x))),
-             school_row = map_int(
-               same_area,
-               ~ { hits <- which(schools_idx %in% .x)
-               if (length(hits)) hits[1] else NA_integer_ }
-             ),
-             current_commute = commute_times[cbind(row_number(), school_row)]) %>%
-      select(-same_area)
+      mutate(
+        current_commute = commute_times[row_number(), schools_idx[high25]]
+      )
   }
   
   # compute average commute time across simulated plans
@@ -318,9 +383,7 @@ projected_average_heatmap <- function(plans, map, schools_idx, commute_times, le
   block_commutes <- matrix(NA, nrow = n_blocks, ncol = n_plans)
   for (p in 1:n_plans) {
     districts <- mat[, p]
-    school_districts <- mat[schools_idx, p]
-    school_cols <- match(districts, school_districts)
-    block_commutes[, p] <- commute_times[cbind(1:n_blocks, school_cols)]
+    block_commutes[, p] <- commute_times[cbind(1:n_blocks, districts)]
   }
   avg_commute_per_block <- rowMeans(block_commutes, na.rm = TRUE)
   blocks$avg_sim_commute <- avg_commute_per_block
@@ -329,8 +392,7 @@ projected_average_heatmap <- function(plans, map, schools_idx, commute_times, le
     ggplot() +
     geom_sf(aes(fill = avg_sim_commute - current_commute)) +
     scale_fill_viridis_c("Average Simulated - \nCurrent Commute \n(seconds)") +
-    theme_bw() +
-    geom_sf(data = ffx_hs)
+    theme_bw()
   
   p_blocks
 }

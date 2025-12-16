@@ -28,11 +28,12 @@ attr(map, "pop_bounds") <- c(1, total_pop / ndists, total_pop - ndists + 1)
 # get school row indices of map and capacities
 schools_info <- get_schools_info(ffx_es, map, ffx_shp, capacity, "elem")
 
-# fix Fort Belvoir Primary school to be in the block adjacent because it's currently in the same block as Fort Belvoir Upper
+# adjust Fort Belvoir Primary school to be in the block adjacent because it's 
+# currently in the same block as Fort Belvoir Upper
 new_row <- which(map$geoid20 == "510594219002006")
 schools_info$map_idx[schools_info$name == "Fort Belvoir Primary"] <- new_row
 
-# temporarily reassign regions so that region cluster sims are contiguous
+# temporarily reassign regions so that region cluster are contiguous
 map$region[map$geoid20 %in% c("516003003001004")] <- 5
 map$region[map$geoid20 %in% c("510594617004007", "510594617004005", 
                               "510594617004006", "510594617004004")] <- 1
@@ -67,12 +68,12 @@ map$region[map$geoid20 %in% c("510594601001007", "510594601001006",
                               "510594602001001", "510594601002007", 
                               "510594602001000", "510594601002012")] <- 1
 
-# get data
+# get school data as separate vectors
 schools_idx <- schools_info$map_idx
 schools_capacity <- schools_info$capacity
 
+# get/calculate commute times from each block to each school block
 if (!file.exists(here("data-raw/elem25/commute_times_es.rds"))) {
-  # calculate commute times
   commute_times <- get_commute_matrix(ffx_shp, schools_idx, profile = "car", 
                                       server = "http://127.0.0.1:5000", 
                                       src_chunk = 100, dst_chunk = 140)
