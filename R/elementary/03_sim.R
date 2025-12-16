@@ -37,11 +37,11 @@ constr <- redist_constr(herndon_map) %>%
   #   commute_times = commute_times
   # ) %>%
   add_constr_incumbency(
-    strength = 20,
+    strength = 100,
     incumbents = herndon_schools
     ) %>%
   add_constr_capacity(
-    strength = 1,
+    strength = 2,
     schools = herndon_schools,
     schools_capacity = herndon_capacity$capacity
   ) %>%
@@ -63,6 +63,12 @@ herndon_plans <- redist_smc(
   #pop_temper = 0.01, 
   verbose = TRUE
 )
+
+herndon_plans <- drop_duplicate_schools_regions(herndon_plans, herndon_schools)
+
+# TODO: repeat for other regions
+
+# TODO: combine everything together
 
 plans <- plans %>%
   add_reference(map$elem25, "elem25")

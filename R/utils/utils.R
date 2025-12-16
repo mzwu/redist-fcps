@@ -104,6 +104,33 @@ drop_duplicate_schools <- function(plans, schools_idx) {
     filter((draw %in% c("elem25", "middle25", "high25")) | (draw %in% keep_plan))
 }
 
+#' Filter down to only plans where each school is assigned to a distinct district - region version
+#'
+#' @param plans a `redist_plans` object
+#' @param schools_idx a vector containing the map indices of each school
+#'
+#' @return a filtered down `redist_plans` object
+#' @export
+drop_duplicate_schools_regions <- function(plans, schools_idx) {
+  # get plans matrix
+  mat <- as.matrix(plans)
+  
+  # rows with schools only
+  school_assign <- mat[schools_idx, , drop = FALSE]
+  
+  # mark plans where any district repeats among the school tracts
+  has_conflict <- apply(school_assign, 2, function(x) {
+    x2 <- x[x != 0 & !is.na(x)]
+    any(duplicated(x2))
+  })
+  
+  # keep only valid plans (no conflicts)
+  keep_plan <- which(!has_conflict)
+  
+  plans %>%
+    filter((draw %in% c("elem25", "middle25", "high25")) | (draw %in% keep_plan))
+}
+
 #' Add starter lower level plans to serve as counties
 #'
 #' @param shp shapefile object
