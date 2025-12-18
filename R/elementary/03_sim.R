@@ -395,7 +395,6 @@ constr <- redist_constr(map) %>%
   add_constr_phase_commute(
     strength = 1,
     current = map$elem25,
-    schools = schools_idx,
     commute_times = commute_times
   ) %>%
   add_constr_incumbency(
