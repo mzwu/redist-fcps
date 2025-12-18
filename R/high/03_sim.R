@@ -5,7 +5,6 @@ constr <- redist_constr(map) %>%
   # add_constr_phase_commute(
   #   strength = 1,
   #   current = map$high25,
-  #   schools = schools_idx,
   #   commute_times = commute_times,
   #   only_districts = TRUE
   # ) %>%

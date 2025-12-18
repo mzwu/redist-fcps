@@ -27,15 +27,13 @@ region1_schools <- which(region1_map$school == TRUE)
 
 # Region 1 commute times
 region1_elem25 <- unique(unlist(school_blocks[region1_map$school]))
-region1_commute <- commute_times[, region1_elem25]
 region1_capacity <- capacity[region1_elem25, ]
 
 constr <- redist_constr(region1_map) %>%
   add_constr_phase_commute(
     strength = 1,
     current = region1_map$elem25,
-    schools = region1_schools,
-    commute_times = region1_commute
+    commute_times = commute_times
   ) %>%
   add_constr_incumbency(
     strength = 100,
@@ -52,7 +50,7 @@ constr <- redist_constr(region1_map) %>%
 
 n_steps <- region1_elem25 %>% length() - 1
 
-# TODO: set seeds
+set.seed(2025)
 region1_plans <- redist_smc(
   region1_map,
   nsims = nsims, 
@@ -87,18 +85,16 @@ region2_schools <- which(region2_map$school == TRUE)
 
 # Region 2 commute times
 region2_elem25 <- unique(unlist(school_blocks[region2_map$school]))
-region2_commute <- commute_times[, region2_elem25]
 region2_capacity <- capacity[region2_elem25, ]
 
 constr <- redist_constr(region2_map) %>%
   add_constr_phase_commute(
     strength = 1,
     current = region2_map$elem25,
-    schools = region2_schools,
-    commute_times = region2_commute
+    commute_times = commute_times
   ) %>%
   add_constr_incumbency(
-    strength = 100,
+    strength = 150,
     incumbents = region2_schools
   ) %>%
   add_constr_capacity(
@@ -112,7 +108,7 @@ constr <- redist_constr(region2_map) %>%
 
 n_steps <- region2_elem25 %>% length() - 1
 
-# TODO: set seeds
+set.seed(2025)
 region2_plans <- redist_smc(
   region2_map,
   nsims = nsims, 
@@ -147,18 +143,16 @@ region3_schools <- which(region3_map$school == TRUE)
 
 # Region 3 commute times
 region3_elem25 <- unique(unlist(school_blocks[region3_map$school]))
-region3_commute <- commute_times[, region3_elem25]
 region3_capacity <- capacity[region3_elem25, ]
 
 constr <- redist_constr(region3_map) %>%
-  add_constr_phase_commute(
-    strength = 1,
-    current = region3_map$elem25,
-    schools = region3_schools,
-    commute_times = region3_commute
-  ) %>%
+  # add_constr_phase_commute(
+  #   strength = 1,
+  #   current = region3_map$elem25,
+  #   commute_times = commute_times
+  # ) %>%
   add_constr_incumbency(
-    strength = 100,
+    strength = 1000,
     incumbents = region3_schools
   ) %>%
   add_constr_capacity(
@@ -172,7 +166,7 @@ constr <- redist_constr(region3_map) %>%
 
 n_steps <- region3_elem25 %>% length() - 1
 
-# TODO: set seeds
+set.seed(2025)
 region3_plans <- redist_smc(
   region3_map,
   nsims = nsims, 
@@ -207,15 +201,13 @@ region4_schools <- which(region4_map$school == TRUE)
 
 # Region 4 commute times
 region4_elem25 <- unique(unlist(school_blocks[region4_map$school]))
-region4_commute <- commute_times[, region4_elem25]
 region4_capacity <- capacity[region4_elem25, ]
 
 constr <- redist_constr(region4_map) %>%
   add_constr_phase_commute(
     strength = 1,
     current = region4_map$elem25,
-    schools = region4_schools,
-    commute_times = region4_commute
+    commute_times = commute_times
   ) %>%
   add_constr_incumbency(
     strength = 100,
@@ -232,7 +224,7 @@ constr <- redist_constr(region4_map) %>%
 
 n_steps <- region4_elem25 %>% length() - 1
 
-# TODO: set seeds
+set.seed(2025)
 region4_plans <- redist_smc(
   region4_map,
   nsims = nsims, 
@@ -267,15 +259,13 @@ region5_schools <- which(region5_map$school == TRUE)
 
 # Region 1 commute times
 region5_elem25 <- unique(unlist(school_blocks[region5_map$school]))
-region5_commute <- commute_times[, region5_elem25]
 region5_capacity <- capacity[region5_elem25, ]
 
 constr <- redist_constr(region5_map) %>%
   add_constr_phase_commute(
     strength = 1,
     current = region5_map$elem25,
-    schools = region5_schools,
-    commute_times = region5_commute
+    commute_times = commute_times
   ) %>%
   add_constr_incumbency(
     strength = 100,
@@ -292,7 +282,7 @@ constr <- redist_constr(region5_map) %>%
 
 n_steps <- region5_elem25 %>% length() - 1
 
-# TODO: set seeds
+set.seed(2025)
 region5_plans <- redist_smc(
   region5_map,
   nsims = nsims, 
@@ -327,15 +317,13 @@ region6_schools <- which(region6_map$school == TRUE)
 
 # Region 1 commute times
 region6_elem25 <- unique(unlist(school_blocks[region6_map$school]))
-region6_commute <- commute_times[, region6_elem25]
 region6_capacity <- capacity[region6_elem25, ]
 
 constr <- redist_constr(region6_map) %>%
   add_constr_phase_commute(
     strength = 1,
     current = region6_map$elem25,
-    schools = region6_schools,
-    commute_times = region6_commute
+    commute_times = commute_times
   ) %>%
   add_constr_incumbency(
     strength = 100,
@@ -352,7 +340,7 @@ constr <- redist_constr(region6_map) %>%
 
 n_steps <- region6_elem25 %>% length() - 1
 
-# TODO: set seeds
+set.seed(2025)
 region6_plans <- redist_smc(
   region6_map,
   nsims = nsims, 
@@ -423,7 +411,7 @@ constr <- redist_constr(map) %>%
     ifelse(any(plan[border_idxs] == 0), 0, 1)
   })
 
-# TODO: set seed
+set.seed(2025)
 plans <- redist_smc(
   map,
   nsims = nsims * 2,
