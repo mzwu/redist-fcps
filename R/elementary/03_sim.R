@@ -26,7 +26,7 @@ school_blocks <- st_contains(region1_map, schools_info)
 region1_map$school <- lengths(school_blocks) > 0
 region1_schools <- which(region1_map$school == TRUE)
 
-# Region 1 commute times
+# Region 1 capacity
 region1_elem25 <- unique(unlist(school_blocks[region1_map$school]))
 region1_capacity <- capacity[region1_elem25, ]
 
@@ -96,7 +96,7 @@ school_blocks <- st_contains(region2_map, schools_info)
 region2_map$school <- lengths(school_blocks) > 0
 region2_schools <- which(region2_map$school == TRUE)
 
-# Region 2 commute times
+# Region 2 capacity
 region2_elem25 <- unique(unlist(school_blocks[region2_map$school]))
 region2_capacity <- capacity[region2_elem25, ]
 
@@ -166,7 +166,7 @@ school_blocks <- st_contains(region3_map, schools_info)
 region3_map$school <- lengths(school_blocks) > 0
 region3_schools <- which(region3_map$school == TRUE)
 
-# Region 3 commute times
+# Region 3 capacity
 region3_elem25 <- unique(unlist(school_blocks[region3_map$school]))
 region3_capacity <- capacity[region3_elem25, ]
 
@@ -236,7 +236,7 @@ school_blocks <- st_contains(region4_map, schools_info)
 region4_map$school <- lengths(school_blocks) > 0
 region4_schools <- which(region4_map$school == TRUE)
 
-# Region 4 commute times
+# Region 4 capacity
 region4_elem25 <- unique(unlist(school_blocks[region4_map$school]))
 region4_capacity <- capacity[region4_elem25, ]
 
@@ -247,7 +247,7 @@ constr <- redist_constr(region4_map) %>%
     commute_times = commute_times
   ) %>%
   add_constr_incumbency(
-    strength = 150,
+    strength = 170,
     incumbents = region4_schools
   ) %>%
   add_constr_capacity(
@@ -306,7 +306,7 @@ school_blocks <- st_contains(region5_map, schools_info)
 region5_map$school <- lengths(school_blocks) > 0
 region5_schools <- which(region5_map$school == TRUE)
 
-# Region 5 commute times
+# Region 5 capacity
 region5_elem25 <- unique(unlist(school_blocks[region5_map$school]))
 region5_capacity <- capacity[region5_elem25, ]
 
@@ -371,12 +371,12 @@ z <- geomander::seam_geom(map$adj, map, admin = "cluster_edge", seam = c(0, 1))
 z <- z[z$cluster_edge == 1, ]
 border_idxs <- which(region6_map$row_id %in% z$row_id)
 
-# Region 1 school indices
+# Region 6 school indices
 school_blocks <- st_contains(region6_map, schools_info)
 region6_map$school <- lengths(school_blocks) > 0
 region6_schools <- which(region6_map$school == TRUE)
 
-# Region 1 commute times
+# Region 6 capacity
 region6_elem25 <- unique(unlist(school_blocks[region6_map$school]))
 region6_capacity <- capacity[region6_elem25, ]
 
@@ -478,15 +478,12 @@ constr <- redist_constr(map) %>%
     strength = 2,
     schools = schools_idx,
     schools_capacity = schools_capacity
-  ) %>%
-  add_constr_custom(strength = 10, function(plan, distr) {
-    ifelse(any(plan[border_idxs] == 0), 0, 1)
-  })
+  )
 
 set.seed(2025)
 plans <- redist_smc(
   map,
-  nsims = nsims * 2,
+  nsims = nsims_keep * 2,
   #runs = 2L,
   #counties = tractce20,
   constraints = constr,
