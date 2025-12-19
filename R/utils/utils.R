@@ -235,8 +235,6 @@ validate_analysis <- function(plans, map) {
   
   p_capacity <- plot(plans, capacity_util, geom = "boxplot") + labs(title = "Capacity Utilization") + theme_bw()
   
-  # will these histograms work if each district in each plan has a different value?
-  # should these metrics just be 1 value (sum over districts) for each plan?
   p_outside_zone <- hist(plans, schools_outside_zone, bins = 5) + labs(title = "Schools Outside Zone") + theme_bw()
   
   p_island <- hist(plans, attendance_islands, bins = 5) + labs(title = "Attendance Islands") + theme_bw()

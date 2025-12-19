@@ -146,13 +146,13 @@ region3_elem25 <- unique(unlist(school_blocks[region3_map$school]))
 region3_capacity <- capacity[region3_elem25, ]
 
 constr <- redist_constr(region3_map) %>%
-  # add_constr_phase_commute(
-  #   strength = 1,
-  #   current = region3_map$elem25,
-  #   commute_times = commute_times
-  # ) %>%
+  add_constr_phase_commute(
+    strength = 1,
+    current = region3_map$elem25,
+    commute_times = commute_times
+  ) %>%
   add_constr_incumbency(
-    strength = 1000,
+    strength = 150,
     incumbents = region3_schools
   ) %>%
   add_constr_capacity(
@@ -210,7 +210,7 @@ constr <- redist_constr(region4_map) %>%
     commute_times = commute_times
   ) %>%
   add_constr_incumbency(
-    strength = 100,
+    strength = 150,
     incumbents = region4_schools
   ) %>%
   add_constr_capacity(
@@ -326,7 +326,7 @@ constr <- redist_constr(region6_map) %>%
     commute_times = commute_times
   ) %>%
   add_constr_incumbency(
-    strength = 100,
+    strength = 150,
     incumbents = region6_schools
   ) %>%
   add_constr_capacity(
