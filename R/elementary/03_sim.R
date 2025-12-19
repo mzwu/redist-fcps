@@ -2,6 +2,7 @@
 map$row_id <- 1:nrow(map)
 
 nsims <- 1e4
+nsims_keep <- 5000
 sa_region <- 0.99
 sa <- 0.95
 
@@ -65,6 +66,18 @@ region1_plans <- redist_smc(
 
 region1_plans <- drop_duplicate_schools_regions(region1_plans, region1_schools)
 
+# normalize draw number
+region1_plans <- region1_plans %>%
+  mutate(
+    draw_num = as.numeric(as.character(draw)),
+    draw = factor(dense_rank(draw_num))
+  ) %>%
+  select(-draw_num)
+
+# thin plans
+region1_plans <- region1_plans %>%
+  filter(as.integer(draw) <= nsims_keep)
+
 write_rds(region1_plans, here("data-raw/elem25/plans/region1_plans.rds"), compress = "gz")
 
 ########################################################################
@@ -123,6 +136,18 @@ region2_plans <- redist_smc(
 
 region2_plans <- drop_duplicate_schools_regions(region2_plans, region2_schools)
 
+# normalize draw number
+region2_plans <- region2_plans %>%
+  mutate(
+    draw_num = as.numeric(as.character(draw)),
+    draw = factor(dense_rank(draw_num))
+  ) %>%
+  select(-draw_num)
+
+# thin plans
+region2_plans <- region2_plans %>%
+  filter(as.integer(draw) <= nsims_keep)
+
 write_rds(region2_plans, here("data-raw/elem25/plans/region2_plans.rds"), compress = "gz")
 
 ########################################################################
@@ -152,7 +177,7 @@ constr <- redist_constr(region3_map) %>%
     commute_times = commute_times
   ) %>%
   add_constr_incumbency(
-    strength = 150,
+    strength = 500,
     incumbents = region3_schools
   ) %>%
   add_constr_capacity(
@@ -179,7 +204,19 @@ region3_plans <- redist_smc(
   verbose = TRUE
 )
 
-region3_plans <- drop_duplicate_schools_regions(region3_plans, region3_schools)
+#region3_plans <- drop_duplicate_schools_regions(region3_plans, region3_schools)
+
+# normalize draw number
+region3_plans <- region3_plans %>%
+  mutate(
+    draw_num = as.numeric(as.character(draw)),
+    draw = factor(dense_rank(draw_num))
+  ) %>%
+  select(-draw_num)
+
+# thin plans
+region3_plans <- region3_plans %>%
+  filter(as.integer(draw) <= nsims_keep)
 
 write_rds(region3_plans, here("data-raw/elem25/plans/region3_plans.rds"), compress = "gz")
 
@@ -239,6 +276,18 @@ region4_plans <- redist_smc(
 
 region4_plans <- drop_duplicate_schools_regions(region4_plans, region4_schools)
 
+# normalize draw number
+region4_plans <- region4_plans %>%
+  mutate(
+    draw_num = as.numeric(as.character(draw)),
+    draw = factor(dense_rank(draw_num))
+  ) %>%
+  select(-draw_num)
+
+# thin plans
+region4_plans <- region4_plans %>%
+  filter(as.integer(draw) <= nsims_keep)
+
 write_rds(region4_plans, here("data-raw/elem25/plans/region4_plans.rds"), compress = "gz")
 
 ########################################################################
@@ -252,12 +301,12 @@ z <- geomander::seam_geom(map$adj, map, admin = "cluster_edge", seam = c(0, 1))
 z <- z[z$cluster_edge == 1, ]
 border_idxs <- which(region5_map$row_id %in% z$row_id)
 
-# Region 1 school indices
+# Region 5 school indices
 school_blocks <- st_contains(region5_map, schools_info)
 region5_map$school <- lengths(school_blocks) > 0
 region5_schools <- which(region5_map$school == TRUE)
 
-# Region 1 commute times
+# Region 5 commute times
 region5_elem25 <- unique(unlist(school_blocks[region5_map$school]))
 region5_capacity <- capacity[region5_elem25, ]
 
@@ -296,6 +345,18 @@ region5_plans <- redist_smc(
 )
 
 region5_plans <- drop_duplicate_schools_regions(region5_plans, region5_schools)
+
+# normalize draw number
+region5_plans <- region5_plans %>%
+  mutate(
+    draw_num = as.numeric(as.character(draw)),
+    draw = factor(dense_rank(draw_num))
+  ) %>%
+  select(-draw_num)
+
+# thin plans
+region5_plans <- region5_plans %>%
+  filter(as.integer(draw) <= nsims_keep)
 
 write_rds(region5_plans, here("data-raw/elem25/plans/region5_plans.rds"), compress = "gz")
 
@@ -355,6 +416,18 @@ region6_plans <- redist_smc(
 
 region6_plans <- drop_duplicate_schools_regions(region6_plans, region6_schools)
 
+# normalize draw number
+region6_plans <- region6_plans %>%
+  mutate(
+    draw_num = as.numeric(as.character(draw)),
+    draw = factor(dense_rank(draw_num))
+  ) %>%
+  select(-draw_num)
+
+# thin plans
+region6_plans <- region6_plans %>%
+  filter(as.integer(draw) <= nsims_keep)
+
 write_rds(region6_plans, here("data-raw/elem25/plans/region6_plans.rds"), compress = "gz")
 
 ########################################################################
@@ -374,7 +447,7 @@ elem_plan_list <- list(list(map = region1_map, plans = region1_plans),
                        list(map = region6_map, plans = region6_plans))
 
 prep_mat <- prep_particles(map = map, map_plan_list = elem_plan_list,
-                           uid = row_id, dist_keep = dist_keep, nsims = nsims*2)
+                           uid = row_id, dist_keep = dist_keep, nsims = nsims_keep*2)
 
 ## Check contiguity
 if (FALSE) {
