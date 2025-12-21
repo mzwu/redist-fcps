@@ -14,16 +14,18 @@ ffx_es <- ffx_es %>%
   filter(OBJECTID %in% capacity$object_id_school)
 
 # make redist_map
-# current ES capacity min/max is 384/1066 so pop_tol=(1066-384)/1066
-map <- redist_map(ffx_shp, pop_tol = 0.64,
+# current ES capacity min/max is 384/1066 so 
+# average distance is (1066-384)/1066=0.64
+# add some margin of error to pop_tol
+map <- redist_map(ffx_shp, pop_tol = 0.7,
                   existing_plan = elem25, adj = ffx_shp$adj)
 attr(map, "analysis_name") <- "ES_25"
 attr(map, "shp") <- ffx_shp
 
 # lenient pop tolerance because we'll impose capacity constraint later
-total_pop <- sum(map$pop)
-ndists <- map$elem25 %>% unique() %>% length()
-attr(map, "pop_bounds") <- c(1, total_pop / ndists, total_pop - ndists + 1)
+# total_pop <- sum(map$pop)
+# ndists <- map$elem25 %>% unique() %>% length()
+# attr(map, "pop_bounds") <- c(1, total_pop / ndists, total_pop - ndists + 1)
 
 # get school row indices of map and capacities
 schools_info <- get_schools_info(ffx_es, map, ffx_shp, capacity, "elem")

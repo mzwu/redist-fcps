@@ -29,6 +29,7 @@ region1_schools <- which(region1_map$school == TRUE)
 # Region 1 capacity
 region1_elem25 <- unique(unlist(school_blocks[region1_map$school]))
 region1_capacity <- capacity[region1_elem25, ]
+region1_capacity$prop_capacity <- region1_capacity$capacity / sum(region1_capacity$capacity)
 
 constr <- redist_constr(region1_map) %>%
   add_constr_phase_commute(
@@ -37,11 +38,11 @@ constr <- redist_constr(region1_map) %>%
     commute_times = commute_times
   ) %>%
   add_constr_incumbency(
-    strength = 100,
+    strength = 9,
     incumbents = region1_schools
     ) %>%
   add_constr_capacity(
-    strength = 2,
+    strength = 1,
     schools = region1_schools,
     schools_capacity = region1_capacity$capacity
   ) %>%
@@ -60,7 +61,7 @@ region1_plans <- redist_smc(
   n_steps = n_steps,
   seq_alpha = sa_region,
   constraints = constr, 
-  pop_temper = 0.01, 
+  pop_temper = 0.02, 
   verbose = TRUE
 )
 
@@ -99,6 +100,7 @@ region2_schools <- which(region2_map$school == TRUE)
 # Region 2 capacity
 region2_elem25 <- unique(unlist(school_blocks[region2_map$school]))
 region2_capacity <- capacity[region2_elem25, ]
+region2_capacity$prop_capacity <- region2_capacity$capacity / sum(region2_capacity$capacity)
 
 constr <- redist_constr(region2_map) %>%
   add_constr_phase_commute(
@@ -107,11 +109,11 @@ constr <- redist_constr(region2_map) %>%
     commute_times = commute_times
   ) %>%
   add_constr_incumbency(
-    strength = 150,
+    strength = 12,
     incumbents = region2_schools
   ) %>%
   add_constr_capacity(
-    strength = 2,
+    strength = 1,
     schools = region2_schools,
     schools_capacity = region2_capacity$capacity
   ) %>%
@@ -130,7 +132,7 @@ region2_plans <- redist_smc(
   n_steps = n_steps,
   seq_alpha = sa_region,
   constraints = constr, 
-  pop_temper = 0.01, 
+  pop_temper = 0.04, 
   verbose = TRUE
 )
 
@@ -169,6 +171,7 @@ region3_schools <- which(region3_map$school == TRUE)
 # Region 3 capacity
 region3_elem25 <- unique(unlist(school_blocks[region3_map$school]))
 region3_capacity <- capacity[region3_elem25, ]
+region3_capacity$prop_capacity <- region3_capacity$capacity / sum(region3_capacity$capacity)
 
 constr <- redist_constr(region3_map) %>%
   add_constr_phase_commute(
@@ -177,11 +180,11 @@ constr <- redist_constr(region3_map) %>%
     commute_times = commute_times
   ) %>%
   add_constr_incumbency(
-    strength = 500,
+    strength = 12,
     incumbents = region3_schools
   ) %>%
   add_constr_capacity(
-    strength = 2,
+    strength = 1,
     schools = region3_schools,
     schools_capacity = region3_capacity$capacity
   ) %>%
@@ -200,7 +203,7 @@ region3_plans <- redist_smc(
   n_steps = n_steps,
   seq_alpha = sa_region,
   constraints = constr, 
-  pop_temper = 0.01, 
+  pop_temper = 0.02, 
   verbose = TRUE
 )
 
@@ -239,6 +242,7 @@ region4_schools <- which(region4_map$school == TRUE)
 # Region 4 capacity
 region4_elem25 <- unique(unlist(school_blocks[region4_map$school]))
 region4_capacity <- capacity[region4_elem25, ]
+region4_capacity$prop_capacity <- region4_capacity$capacity / sum(region4_capacity$capacity)
 
 constr <- redist_constr(region4_map) %>%
   add_constr_phase_commute(
@@ -309,6 +313,7 @@ region5_schools <- which(region5_map$school == TRUE)
 # Region 5 capacity
 region5_elem25 <- unique(unlist(school_blocks[region5_map$school]))
 region5_capacity <- capacity[region5_elem25, ]
+region5_capacity$prop_capacity <- region5_capacity$capacity / sum(region5_capacity$capacity)
 
 constr <- redist_constr(region5_map) %>%
   add_constr_phase_commute(
@@ -379,6 +384,7 @@ region6_schools <- which(region6_map$school == TRUE)
 # Region 6 capacity
 region6_elem25 <- unique(unlist(school_blocks[region6_map$school]))
 region6_capacity <- capacity[region6_elem25, ]
+region6_capacity$prop_capacity <- region6_capacity$capacity / sum(region6_capacity$capacity)
 
 constr <- redist_constr(region6_map) %>%
   add_constr_phase_commute(
@@ -485,10 +491,11 @@ plans <- redist_smc(
   map,
   nsims = nsims_keep * 2,
   #runs = 2L,
-  #counties = tractce20,
+  ncores = 60,
+  counties = tractce20,
   constraints = constr,
   init_particles = prep_mat,
-  #pop_temper = 0.01,
+  pop_temper = 0.01,
   seq_alpha = sa,
   verbose = TRUE
 )
