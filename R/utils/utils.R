@@ -183,9 +183,9 @@ add_summary_stats <- function(plans, map, current, schools, commute_times, capac
       capacity_util = capacity_util(plans, 
                                     schools_capacity = capacity, 
                                     pop = map$pop),
-      schools_outside_zone = schools_outside_zone(plans,
-                                                  schools = schools),
-      attendance_islands = attendance_islands(plans)
+      school_outside_zone = school_outside_zone(plans,
+                                                schools = schools),
+      attendance_islands = attendance_islands(plans, map)
     )
   
   # lower level attendance area splits and split feeder counts
@@ -233,7 +233,7 @@ validate_analysis <- function(plans, map) {
   
   p_capacity <- plot(plans, capacity_util, geom = "boxplot") + labs(title = "Capacity Utilization") + theme_bw()
   
-  p_outside_zone <- hist(plans, schools_outside_zone, bins = 5) + labs(title = "Schools Outside Zone") + theme_bw()
+  p_outside_zone <- hist(plans, school_outside_zone, bins = 5) + labs(title = "Schools Outside Zone") + theme_bw()
   
   p_island <- hist(plans, attendance_islands, bins = 5) + labs(title = "Attendance Islands") + theme_bw()
   
