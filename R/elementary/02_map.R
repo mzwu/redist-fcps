@@ -7,7 +7,8 @@ ffx_es <- ffx_schools %>%
 capacity <- read_csv("data/school_capacities.csv") %>%
   filter(type == "ES") %>%
   mutate(utilization = membership / capacity,
-         prop_capacity = capacity / sum(capacity))
+         prop_capacity = capacity / sum(capacity)) %>%
+  filter(object_id_area %in% ffx_shp$elem25_id)
 
 # get rid of schools that don't have attendance areas
 ffx_es <- ffx_es %>%

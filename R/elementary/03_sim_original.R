@@ -470,6 +470,10 @@ if (FALSE) {
   table(test_vec)/nsims
 }
 
+# for init_seats
+v <- c(29, 24, 21, 26, 23, 17)
+m <- matrix(v, nrow = length(v), ncol = nsims_keep*2)
+
 constr <- redist_constr(map) %>%
   add_constr_phase_commute(
     strength = 1,
@@ -477,11 +481,11 @@ constr <- redist_constr(map) %>%
     commute_times = commute_times
   ) %>%
   add_constr_incumbency(
-    strength = 100,
+    strength = 1,
     incumbents = schools_idx
   ) %>%
   add_constr_capacity(
-    strength = 2,
+    strength = 1,
     schools = schools_idx,
     schools_capacity = schools_capacity
   )
@@ -491,12 +495,16 @@ plans <- redist_smc(
   map,
   nsims = nsims_keep * 2,
   #runs = 2L,
-  ncores = 60,
-  counties = tractce20,
+  ncores = 64,
+  #counties = tractce20,
   constraints = constr,
   init_particles = prep_mat,
-  pop_temper = 0.01,
+  #init_seats = m,
+  pop_temper = 0.05,
   seq_alpha = sa,
+  #sampling_space = "linking_edge",
+  #ms_params = list(frequency = 1L, mh_accept_per_smc = 10),
+  #split_params = list(splitting_schedule = "any_valid_sizes"),
   verbose = TRUE
 )
 

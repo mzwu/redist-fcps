@@ -9,7 +9,7 @@ constr <- redist_constr(map) %>%
     only_districts = TRUE
   ) %>%
   add_constr_plan_incumbency(
-    strength = 1,
+    strength = 50,
     incumbents = schools_idx
   ) %>%
   add_constr_capacity(
@@ -24,18 +24,19 @@ plans <- redist_smc(
   map,
   nsims = nsims,
   runs = nruns,
-  ncores = 60,
+  ncores = 64,
   #counties = tractce20,
-  #constraints = constr,
+  constraints = constr,
   #pop_temper = 0.01,
-  sampling_space = "linking_edge",
+  #sampling_space = "linking_edge",
+  sampling_space = "graph_plan",
   ms_params = list(frequency = 1L, mh_accept_per_smc = 10),
   split_params = list(splitting_schedule = "any_valid_sizes"),
   verbose = TRUE
 )
 
-plans <- plans %>%
-  add_reference(map$elem25, "elem25")
+# plans <- plans %>%
+#   add_reference(map$elem25, "elem25")
 
 plans <- match_numbers(plans, "elem25")
 
@@ -44,4 +45,4 @@ plans <- match_numbers(plans, "elem25")
 # TODO: keep only plans where each school is in a distinct district
 #plans <- drop_duplicate_schools(plans, schools_idx)
 
-write_rds(plans, here("data-raw/elem25/plans/plans_es.rds"), compress = "gz")
+write_rds(plans, here("data-raw/elem25/plans/plans_es_incumbent50_commute1_capacity1.rds"), compress = "gz")
