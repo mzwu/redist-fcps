@@ -2,21 +2,21 @@ nsims <- 2500
 nruns <- 1L
 
 constr <- redist_constr(map) %>%
-  add_constr_phase_commute(
-    strength = 1,
-    current = map$elem25,
-    commute_times = commute_times,
-    only_districts = TRUE
-  ) %>%
+  # add_constr_phase_commute(
+  #   strength = 10,
+  #   current = map$elem25,
+  #   commute_times = commute_times,
+  #   only_districts = TRUE
+  # ) %>%
   add_constr_plan_incumbency(
-    strength = 50,
+    strength = 10,
     incumbents = schools_idx
-  ) %>%
-  add_constr_capacity(
-    strength = 1,
-    schools = schools_idx,
-    schools_capacity = schools_capacity,
-    only_districts = TRUE
+  # ) %>%
+  # add_constr_capacity(
+  #   strength = 10,
+  #   schools = schools_idx,
+  #   schools_capacity = schools_capacity,
+  #   only_districts = TRUE
   )
 
 set.seed(2025)
@@ -45,4 +45,4 @@ plans <- match_numbers(plans, "elem25")
 # TODO: keep only plans where each school is in a distinct district
 #plans <- drop_duplicate_schools(plans, schools_idx)
 
-write_rds(plans, here("data-raw/elem25/plans/plans_es_incumbent50_commute1_capacity1.rds"), compress = "gz")
+write_rds(plans, here("data-raw/elem25/plans/plans_es_incumbent10.rds"), compress = "gz")
