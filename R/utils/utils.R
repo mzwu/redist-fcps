@@ -174,6 +174,7 @@ add_summary_stats <- function(plans, map, current, schools, commute_times, capac
   plans <- plans %>%
     mutate(
       plan_dev = plan_parity(map),
+      comp_edge = comp_frac_kept(plans, map),
       comp_polsby = comp_polsby(plans, map),
       phase_commute = phase_commute(plans, map, 
                                     current = current,
@@ -226,6 +227,8 @@ validate_analysis <- function(plans, map) {
   p_dev <- hist(plans, plan_dev, bins = 40) + labs(title = "Population Deviation") + theme_bw()
   
   p_comp <- plot(plans, comp_polsby, geom = "boxplot") + labs(title = "Compactness: Polsby-Popper") + theme_bw()
+  
+  p_comp_frac <- hist(plans, comp_edge, bins = 40) + labs(title = "Compactness: Fraction Kept") + theme_bw()
   
   p_commute <- plot(plans, phase_commute, geom = "boxplot") + labs(title = "Phase-In Commute Disruption") + theme_bw()
   
@@ -322,14 +325,14 @@ AAABBBCCC
 DDDDDDEEE
 FFFFFFGGG
 HHHHHHIII
-JJJJJJJJJ
-KKKLLLMMM"
+JJJJJJKKK
+LLLMMMNNN"
   
   p <- patchwork::wrap_plots(A = p_weights, B = p_div, C = p_dev, 
-                             D = p_comp, E = p_split, F = p_commute,
-                             G = p_outside_zone, H = p_max_commute, I = p_island,
-                             J = p_capacity,
-                             K = p_ex1, L = p_ex2, M = p_ex3, design = layout) +
+                             D = p_comp, E = p_comp_frac, F = p_commute,
+                             G = p_split, H = p_max_commute, 
+                             I = p_outside_zone, J = p_capacity, K = p_island, 
+                             L = p_ex1, M = p_ex2, N = p_ex3, design = layout) +
     patchwork::plot_annotation(title = str_c(plans$draw[1], " Validation")) +
     patchwork::plot_layout(guides = "collect")
   
