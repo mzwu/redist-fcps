@@ -273,6 +273,8 @@ validate_analysis <- function(plans, map) {
               alpha = 0.8,
               color = "red")
   
+  # NOTE: all labels are stacked on top of each other because
+  # enacted plan has phase commute = 0 for every district
   p_commute <- p_commute +
     geom_text(data = enacted_summary,
               aes(

@@ -9,7 +9,7 @@ constr <- redist_constr(map) %>%
   #   only_districts = TRUE
   # ) %>%
   add_constr_plan_incumbency(
-    strength = 10,
+    strength = 5,
     incumbents = schools_idx
   # ) %>%
   # add_constr_capacity(
@@ -45,4 +45,4 @@ plans <- match_numbers(plans, "elem25")
 # TODO: keep only plans where each school is in a distinct district
 #plans <- drop_duplicate_schools(plans, schools_idx)
 
-write_rds(plans, here("data-raw/elem25/plans/plans_es_incumbent10.rds"), compress = "gz")
+write_rds(plans, here("data-raw/elem25/plans/plans_es_inc5_poptol0.7.rds"), compress = "gz")
