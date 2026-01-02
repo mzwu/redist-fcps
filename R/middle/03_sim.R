@@ -2,13 +2,13 @@ nsims <- 2500
 nruns <- 1L
 
 constr <- redist_constr(map) %>%
-  # add_constr_phase_commute(
+  # add_constr_commute(
   #   strength = 1,
   #   current = map$middle25,
   #   commute_times = commute_times
   # ) %>%
   add_constr_incumbency(
-    strength = 99,
+    strength = 1,
     incumbents = schools_idx
   # ) %>%
   # add_constr_split_feeders(
