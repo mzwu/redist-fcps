@@ -60,7 +60,7 @@ plans <- rbind(plans1,
                plans3 %>% subset_sampled() %>% mutate(draw = factor(as.integer(draw) + 2 * N)))
 
 plans <- plans %>%
-  add_reference(map$middle_scenario2, "middle_scenario2") %>%
-  add_reference(map$middle_scenario3, "middle_scenario3")
+  add_reference(map$middle_scenario2, "middle_scenario3") %>%
+  add_reference(map$middle_scenario3, "middle_scenario2")
 
 write_rds(plans, here("data-raw/middle/plans/plans_ms.rds"))

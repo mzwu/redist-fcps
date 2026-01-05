@@ -1,23 +1,23 @@
 nsims <- 2500
 nruns <- 1L
 
-# constr <- redist_constr(map) %>%
+constr <- redist_constr(map) %>%
 #   add_constr_commute(
 #     strength = 1,
 #     current = map$elem25,
 #     commute_times = commute_times,
 #     only_districts = TRUE
 #   ) %>%
-#   add_constr_plan_incumbency(
-#     strength = 7,
-#     incumbents = schools_idx
+  add_constr_plan_incumbency(
+    strength = 1,
+    incumbents = schools_idx
 #   ) %>%
 #   add_constr_capacity(
 #     strength = 6,
 #     schools = schools_idx,
 #     schools_capacity = schools_capacity,
 #     only_districts = TRUE
-#   )
+  )
 
 set.seed(2025)
 plans <- redist_smc(
@@ -36,8 +36,8 @@ plans <- redist_smc(
 )
 
 plans <- plans %>%
-  add_reference(map$elem_scenario2, "elem_scenario2") %>%
-  add_reference(map$elem_scenario3, "elem_scenario3")
+  add_reference(map$elem_scenario2, "elem_scenario3") %>%
+  add_reference(map$elem_scenario3, "elem_scenario2")
 
 plans <- match_numbers(plans, "elem_scenario4")
 
@@ -46,4 +46,4 @@ plans <- match_numbers(plans, "elem_scenario4")
 # TODO: keep only plans where each school is in a distinct district
 #plans <- drop_duplicate_schools(plans, schools_idx)
 
-write_rds(plans, here("data-raw/elem25/plans/plans_es_noconstr.rds"), compress = "gz")
+write_rds(plans, here("data-raw/elem/plans/plans_es_inc1_pop0.9.rds"), compress = "gz")
