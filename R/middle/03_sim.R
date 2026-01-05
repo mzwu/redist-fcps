@@ -24,7 +24,7 @@ constr <- redist_constr(map) %>%
 
 simulate_plans <- function(map, draws, nsims, nruns) {
   for (i in 1:length(draws)) {
-    starter_name <- paste0("elem", i)
+    starter_name <- paste0("elem_starter", i)
     plans <- redist_smc(
       map,
       nsims = nsims, runs = nruns,
@@ -38,12 +38,12 @@ simulate_plans <- function(map, draws, nsims, nruns) {
       verbose = T
     )
     
-    plans <- match_numbers(plans, "middle25")
+    plans <- match_numbers(plans, "middle_scenario4")
     
     # keep only plans where each school is in a distinct district
-    plans <- drop_duplicate_schools(plans, schools_idx)
+    # plans <- drop_duplicate_schools(plans, schools_idx)
     
-    path <- paste0("data-raw/middle25/plans/plans_ms_", i, ".rds")
+    path <- paste0("data-raw/middle/plans/plans_ms_", i, ".rds")
     write_rds(plans, here(path), compress = "gz")
   }
 }
@@ -51,12 +51,16 @@ simulate_plans <- function(map, draws, nsims, nruns) {
 simulate_plans(map, draws5, nsims, nruns)
 
 # combine 3 sets of plans
-plans1 <- read_rds(here("data-raw/middle25/plans/plans_ms_1.rds"))
-plans2 <- read_rds(here("data-raw/middle25/plans/plans_ms_2.rds"))
-plans3 <- read_rds(here("data-raw/middle25/plans/plans_ms_3.rds"))
+plans1 <- read_rds(here("data-raw/middle/plans/plans_ms_1.rds"))
+plans2 <- read_rds(here("data-raw/middle/plans/plans_ms_2.rds"))
+plans3 <- read_rds(here("data-raw/middle/plans/plans_ms_3.rds"))
 N <- 2500
 plans <- rbind(plans1,
                plans2 %>% subset_sampled() %>% mutate(draw = factor(as.integer(draw) + 1 * N)),
                plans3 %>% subset_sampled() %>% mutate(draw = factor(as.integer(draw) + 2 * N)))
 
-write_rds(plans, here("data-raw/middle25/plans/plans_ms.rds"))
+plans <- plans %>%
+  add_reference(map$middle_scenario2, "middle_scenario2") %>%
+  add_reference(map$middle_scenario3, "middle_scenario3")
+
+write_rds(plans, here("data-raw/middle/plans/plans_ms.rds"))

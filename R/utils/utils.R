@@ -1,36 +1,12 @@
-#' Create map/translation between official school area IDs and normalized (1 to 
-#' ndist) IDs
-#'
-#' @param shp a shapefile object with both official school area ID (level25_id) 
-#'        and normalized ID (level25)
-#' @param level a string of either "elem", "middle", or "high"
-#'
-#' @return a data frame with 2 columns, one with the official school district ID 
-#'         (level25_id) and the other with a normalized ID (level25)
-get_schools_id_map <- function(shp, level) {
-  shp %>%
-    st_drop_geometry() %>%
-    select(
-      paste0(level, "25_id"),
-      paste0(level, "25")
-    ) %>%
-    unique()
-}
-
 #' Get the indices of rows in the map that correspond to locations of schools, 
 #' and capacity of each school in order of increasing school area ID
 #'
 #' @param schools an `sf` object with a `geom_point` column denoting school locations
 #' @param map a `redist_map` object
-#' @param shp a shapefile object with both official school area ID and normalized ID
-#' @param capacity a dataframe containing the capacity, name, and ID 
-#'                 (school and area ID) of each school
-#' @param level a string of either "elem", "middle", or "high"
 #'
-#' @return an `sf` object containing the normalized ID, type (ES/MS/HS), name, capacity,
-#'          map_idx (the row number in map that contains the school, 1-indexed)
+#' @return a list of the row number in map that contains each school, 1-indexed
 #' @export
-get_schools_info <- function(schools, map, shp, capacity, level) {
+get_schools_idx <- function(schools, map) {
   # get longitude and latitude for each school
   schools <- schools %>%
     mutate(lon = st_coordinates(.)[,1],
@@ -41,45 +17,24 @@ get_schools_info <- function(schools, map, shp, capacity, level) {
   schools_sf <- st_transform(schools_sf, st_crs(map))
   map_rowid <- map |> mutate(block_row = row_number())
   
-  # add row number and capacity data
+  # add row number
   schools_info <- schools_sf %>%
     st_join(
       map_rowid["block_row"],
       join = sf::st_within
-    ) %>%
-    merge(
-      capacity, 
-      by.x="OBJECTID", 
-      by.y="object_id_school"
-    )
-  
-  # get normalized school area ID
-  schools_id_map <- get_schools_id_map(shp, level)
-  schools_info <- schools_info %>%
-    merge(
-      schools_id_map,
-      by.x = "object_id_area",
-      by.y = paste0(level, "25_id")
     )
   
   # select relevant rows in ascending ID order
   schools_info <- schools_info %>%
-    select(
-      map_idx = block_row,
-      paste0(level, "25"),
-      type,
-      name,
-      capacity,
-      geometry
-    ) %>%
-    arrange(.data[[paste0(level, "25")]])
+    select(map_idx = block_row, OBJECTID) %>%
+    arrange(OBJECTID)
   
   # ensure valid integers
   schools_info$map_idx <- schools_info$map_idx |> as.integer()
   schools_info <- schools_info %>%
     filter(!is.na(map_idx))
   
-  schools_info
+  schools_info$map_idx
 }
 
 #' Filter down to only plans where each school is assigned to a distinct district
@@ -152,7 +107,7 @@ drop_duplicate_schools_regions <- function(plans, schools_idx) {
 add_starter_plans <- function(shp, lower_plans, draws, level) {
   for (i in 1:length(draws)) {
     shp <- shp %>%
-      mutate("{level}{i}" := get_plans_matrix(lower_plans)[,draws[[i]]+1])
+      mutate("{level}_starter{i}" := get_plans_matrix(lower_plans)[,draws[[i]]+1])
   }
   shp
 }
@@ -190,17 +145,18 @@ add_summary_stats <- function(plans, map, current, schools, commute_times, capac
     )
   
   # lower level attendance area splits and split feeder counts
+  # TODO: figure out how to deal with different lower level starter plans
   if (level == "middle") {
     plans <- plans |>
-      dplyr::mutate(elem_splits = redistmetrics::splits_admin(plans, map, elem25)) |>
+      dplyr::mutate(elem_splits = redistmetrics::splits_admin(plans, map, elem_starter1)) |>
       dplyr::mutate(elem_split_feeders = split_feeders(plans,
-                                                       lower = map$elem25,
+                                                       lower = map$elem_starter1,
                                                        pop = map$pop))
   } else if (level == "high") {
     plans <- plans |>
-      dplyr::mutate(middle_splits = redistmetrics::splits_admin(plans, map, middle25)) |>
+      dplyr::mutate(middle_splits = redistmetrics::splits_admin(plans, map, middle_starter1)) |>
       dplyr::mutate(middle_split_feeders = split_feeders(plans,
-                                                         lower = map$middle25,
+                                                         lower = map$middle_starter1,
                                                          pop = map$pop))
   }
   
@@ -211,10 +167,11 @@ add_summary_stats <- function(plans, map, current, schools, commute_times, capac
 #'
 #' @param plans a `redist_plans` object
 #' @param map a `redist_map` object
+#' @param level string describing level of current sims, "elem" or "middle" or "high"
 #'
 #' @return the output path, invisibly
 #' @export
-validate_analysis <- function(plans, map) {
+validate_analysis <- function(plans, map, level) {
   p_weights <- plot(plans) + theme_bw()
   
   plan_div <- data.frame(plan_div = plans_diversity(plans, n_max = 150))
@@ -338,7 +295,7 @@ LLLMMMNNN"
     patchwork::plot_annotation(title = str_c(plans$draw[1], " Validation")) +
     patchwork::plot_layout(guides = "collect")
   
-  out_path <- here(str_glue("data-raw/{plans$draw[1]}/validation/validation_{format(Sys.time(), '%Y%m%d_%H%M')}.png"))
+  out_path <- here(str_glue("data-raw/{level}/validation/validation_{format(Sys.time(), '%Y%m%d_%H%M')}.png"))
   ggsave(out_path, plot = p, height = 15, width = 15)
   if (rstudioapi::isAvailable()) rstudioapi::viewer(out_path)
   invisible(out_path)

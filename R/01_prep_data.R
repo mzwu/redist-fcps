@@ -22,32 +22,80 @@ if (!file.exists(here(shp_path))) {
     mutate(tract = ffx_tract$TRACTCE[
       geo_match(ffx_blocks, ffx_tract, method = "area")])
   
-  # read in Elementary School Attendance Area data
-  ffx_elementary <- read_sf("data/Elementary_School_Attendance_Areas/Elementary_School_Attendance_Areas.shp")
-  ffx_blocks <- ffx_blocks %>%
-    mutate(elem25_id = ffx_elementary$OBJECTID[
-      geo_match(ffx_blocks, ffx_elementary, method = "area")])
-  ffx_blocks$elem25 <- vctrs::vec_group_id(ffx_blocks$elem25_id)
+  # map school names to IDs
+  es_name_to_id <- read_csv("data/school_capacities.csv") %>%
+    filter(type == "ES") %>%
+    select(type, name, object_id_school) %>%
+    arrange(object_id_school) %>%
+    mutate(elem25 = vctrs::vec_group_id(object_id_school))
+  ms_name_to_id <- read_csv("data/school_capacities.csv") %>%
+    filter(type == "MS") %>%
+    select(type, name, object_id_school) %>%
+    arrange(object_id_school) %>%
+    mutate(middle25 = vctrs::vec_group_id(object_id_school))
+  hs_name_to_id <- read_csv("data/school_capacities.csv") %>%
+    filter(type == "HS") %>%
+    select(type, name, object_id_school) %>%
+    arrange(object_id_school) %>%
+    mutate(high25 = vctrs::vec_group_id(object_id_school))
   
-  # read in Middle School Attendance Area data
-  ffx_middle <- read_sf("data/Middle_School_Attendance_Areas/Middle_School_Attendance_Areas.shp")
-  ffx_blocks <- ffx_blocks %>%
-    mutate(middle25_id = ffx_middle$OBJECTID[
-      geo_match(ffx_blocks, ffx_middle, method = "area")])
-  ffx_blocks$middle25 <- vctrs::vec_group_id(ffx_blocks$middle25_id)
+  # we leave out scenario 1 because that addresses attendance islands and
+  # SMC is guaranteed to eliminate all attendance islands
   
-  # read in High School Attendance Area data
-  ffx_high <- read_sf("data/High_School_Attendance_Areas/High_School_Attendance_Areas.shp")
-  ffx_blocks <- ffx_blocks %>%
-    mutate(high25_id = ffx_high$OBJECTID[
-      geo_match(ffx_blocks, ffx_high, method = "area")])
-  ffx_blocks$high25 <- vctrs::vec_group_id(ffx_blocks$high25_id)
+  # add Elementary School scenario boundaries
+  es_scenario_2 <- st_read("data/scenario_boundaries/scenario_2_es.geojson") %>%
+    mutate(name = str_sub(name, 1, -4)) %>%
+    left_join(es_name_to_id, by = "name")
+  es_scenario_3 <- st_read("data/scenario_boundaries/scenario_3_es.geojson") %>%
+    mutate(name = str_sub(name, 1, -4)) %>%
+    left_join(es_name_to_id, by = "name")
+  es_scenario_4 <- st_read("data/scenario_boundaries/scenario_4_es.geojson") %>%
+    mutate(name = str_sub(name, 1, -4)) %>%
+    left_join(es_name_to_id, by = "name")
   
-  # add region data
+  # add Middle School scenario boundaries
+  ms_scenario_2 <- st_read("data/scenario_boundaries/scenario_2_ms.geojson") %>%
+    mutate(name = str_sub(name, 1, -4)) %>%
+    left_join(ms_name_to_id, by = "name")
+  ms_scenario_3 <- st_read("data/scenario_boundaries/scenario_3_ms.geojson") %>%
+    mutate(name = str_sub(name, 1, -4)) %>%
+    left_join(ms_name_to_id, by = "name")
+  ms_scenario_4 <- st_read("data/scenario_boundaries/scenario_4_ms.geojson") %>%
+    mutate(name = str_sub(name, 1, -4)) %>%
+    left_join(ms_name_to_id, by = "name")
+  
+  # add High School scenario boundaries
+  hs_scenario_2 <- st_read("data/scenario_boundaries/scenario_2_hs.geojson") %>%
+    mutate(name = str_sub(name, 1, -4)) %>%
+    left_join(hs_name_to_id, by = "name")
+  hs_scenario_3 <- st_read("data/scenario_boundaries/scenario_3_hs.geojson") %>%
+    mutate(name = str_sub(name, 1, -4)) %>%
+    left_join(hs_name_to_id, by = "name")
+  hs_scenario_4 <- st_read("data/scenario_boundaries/scenario_4_hs.geojson") %>%
+    mutate(name = str_sub(name, 1, -4)) %>%
+    left_join(hs_name_to_id, by = "name")
+  
   ffx_blocks <- ffx_blocks %>%
-    left_join(ffx_elementary %>% select(OBJECTID, REGION) %>% st_drop_geometry(), 
-              by = join_by(elem25_id == OBJECTID)) %>%
-    rename(region = REGION)
+    mutate(
+      elem_scenario2 = es_scenario_2$elem25[
+        geo_match(ffx_blocks, es_scenario_2, method = "area")],
+      elem_scenario3 = es_scenario_3$elem25[
+        geo_match(ffx_blocks, es_scenario_3, method = "area")],
+      elem_scenario4 = es_scenario_4$elem25[
+        geo_match(ffx_blocks, es_scenario_4, method = "area")],
+      middle_scenario2 = ms_scenario_2$middle25[
+        geo_match(ffx_blocks, ms_scenario_2, method = "area")],
+      middle_scenario3 = ms_scenario_3$middle25[
+        geo_match(ffx_blocks, ms_scenario_3, method = "area")],
+      middle_scenario4 = ms_scenario_4$middle25[
+        geo_match(ffx_blocks, ms_scenario_4, method = "area")],
+      high_scenario2 = hs_scenario_2$high25[
+        geo_match(ffx_blocks, hs_scenario_2, method = "area")],
+      high_scenario3 = hs_scenario_3$high25[
+        geo_match(ffx_blocks, hs_scenario_3, method = "area")],
+      high_scenario4 = hs_scenario_4$high25[
+        geo_match(ffx_blocks, hs_scenario_4, method = "area")]
+    )
   
   # clean up columns
   ffx_blocks <- ffx_blocks %>%
