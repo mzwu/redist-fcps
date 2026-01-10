@@ -18,7 +18,7 @@ ffx_es <- ffx_es %>%
 # current ES capacity min/max is 384/1066 so 
 # average distance is (1066-384)/1066=0.64
 # add some margin of error to pop_tol
-map <- redist_map(ffx_shp, pop_tol = 0.9,
+map <- redist_map(ffx_shp, pop_tol = 0.6,
                   existing_plan = elem_scenario4, adj = ffx_shp$adj)
 attr(map, "analysis_name") <- "ES_25_S4"
 attr(map, "shp") <- ffx_shp

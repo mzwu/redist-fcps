@@ -75,8 +75,8 @@ drop_duplicate_schools <- function(plans, schools_idx) {
 #' @return a filtered down `redist_plans` object
 #' @export
 drop_duplicate_schools_regions <- function(plans, schools_idx) {
-  # get plans matrix
-  mat <- as.matrix(plans)
+  # get plans matrix, remove first 3 reference plans
+  mat <- as.matrix(plans)[,-(1:3)]
   
   # rows with schools only
   school_assign <- mat[schools_idx, , drop = FALSE]
