@@ -1,13 +1,15 @@
+# install redist_gsmc before running this
+
 nsims <- 2500
 nruns <- 1L
 
 constr <- redist_constr(map) %>%
-  # add_constr_commute(
-  #   strength = 1,
-  #   current = map$elem_scenario4,
-  #   commute_times = commute_times,
-  #   only_districts = TRUE
-#   ) %>%
+add_constr_commute(
+  strength = 1,
+  current = map$elem_scenario4,
+  commute_times = commute_times,
+  only_districts = TRUE
+  ) %>%
 add_constr_plan_incumbency(
   strength = 4,
   incumbents = schools_idx
@@ -25,12 +27,9 @@ plans <- redist_smc(
   nsims = nsims,
   runs = nruns,
   ncores = 64,
-  #counties = tractce20,
   constraints = constr,
   #pop_temper = 0.01,
   sampling_space = "linking_edge",
-  #sampling_space = "graph_plan",
-  #sampling_space = "spanning_forest",
   ms_params = list(frequency = 1L, mh_accept_per_smc = 10),
   split_params = list(splitting_schedule = "any_valid_sizes"),
   verbose = TRUE
@@ -42,9 +41,8 @@ plans <- plans %>%
 
 plans <- match_numbers(plans, "elem_scenario4")
 
-# TODO: thin samples
+# keep only plans where each school is in a distinct district
+plans <- drop_duplicate_schools(plans, schools_idx)
 
-# TODO: keep only plans where each school is in a distinct district
-#plans <- drop_duplicate_schools(plans, schools_idx)
-
-write_rds(plans, here("data-raw/elem/plans/plans_es_inc4_cap10_pop0.6.rds"), compress = "gz")
+write_rds(plans, here("data-raw/elem/plans/plans_es_com1_inc4_cap10_pop0.66.rds"), compress = "gz")
+  
