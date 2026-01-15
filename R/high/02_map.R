@@ -17,6 +17,7 @@ ffx_hs <- ffx_hs %>%
 # sample 5 middle plans as starter plans
 nstarter <- 1
 middle_plans <- read_rds(here("data-raw/middle/plans/plans_ms_1.rds"))
+set.seed(2025)
 plans5 <- middle_plans %>%
   filter(!(draw %in% c("middle_scenario2", "middle_scenario3", "middle_scenario4"))) %>%
   filter(draw %in% sample(unique(draw), nstarter))

@@ -17,6 +17,7 @@ ffx_ms <- ffx_ms %>%
 # sample 5 elementary plans as starter plans
 nstarter <- 1
 elem_plans <- read_rds(here("data-raw/elem/plans/plans_es.rds"))
+set.seed(2025)
 plans5 <- elem_plans %>%
   filter(!(draw %in% c("elem_scenario2", "elem_scenario3", "elem_scenario4"))) %>%
   filter(draw %in% sample(unique(draw), nstarter))

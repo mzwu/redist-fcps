@@ -1,16 +1,16 @@
 # install redist_original before running this
 
-nsims <- 1e4
+nsims <- 3e4
 nstarter <- 3
 
 init_plans <- read_rds(here("data-raw/elem/plans/plans_es_com1_inc4_cap10_pop0.66.rds"))
+set.seed(2025)
 plans5 <- init_plans %>%
   filter(!(draw %in% c("elem_scenario2", "elem_scenario3", "elem_scenario4"))) %>%
   filter(draw %in% sample(unique(draw), nstarter))
 draws5 <- as.numeric(match(levels(plans5$draw), init_plans$draw %>% unique()))
 map <- add_starter_plans(map, init_plans, draws5, "init")
 
-set.seed(2025)
 constr <- redist_constr(map) %>%
   # add_constr_commute(
   #   strength = 1,
@@ -22,7 +22,7 @@ constr <- redist_constr(map) %>%
     incumbents = schools_idx
   ) %>%
   add_constr_capacity(
-    strength = 30,
+    strength = 45,
     schools = schools_idx,
     schools_capacity = schools_capacity
   )
@@ -61,4 +61,4 @@ plans <- rbind(plans1,
                plans2 %>% subset_sampled() %>% mutate(draw = factor(as.integer(draw) + 1 * nsims)),
                plans3 %>% subset_sampled() %>% mutate(draw = factor(as.integer(draw) + 2 * nsims)))
 
-write_rds(plans, here("data-raw/elem/plans/plans_es_mcmc_inc8_cap30_pop0.66.rds"), compress = "gz")
+write_rds(plans, here("data-raw/elem/plans/plans_es_mcmc_inc8_cap45_pop0.66.rds"), compress = "gz")
