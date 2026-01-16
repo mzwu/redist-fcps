@@ -1,6 +1,6 @@
-# install redist_original before running this
+# install redist_original/commit-mergesplit before running this
 
-nsims <- 3e4
+nsims <- 1e5
 nstarter <- 3
 
 init_plans <- read_rds(here("data-raw/elem/plans/plans_es_com1_inc4_cap10_pop0.66.rds"))
@@ -18,11 +18,11 @@ constr <- redist_constr(map) %>%
   #   commute_times = commute_times
   # ) %>%
   add_constr_incumbency(
-    strength = 8,
+    strength = 9,
     incumbents = schools_idx
   ) %>%
   add_constr_capacity(
-    strength = 45,
+    strength = 35,
     schools = schools_idx,
     schools_capacity = schools_capacity
   )
@@ -41,11 +41,6 @@ simulate_plans <- function(map, draws, nsims, nruns) {
       verbose = T
     )
     
-    plans <- plans %>%
-      add_reference(map$elem_scenario2, "elem_scenario4") %>%
-      add_reference(map$elem_scenario2, "elem_scenario3") %>%
-      add_reference(map$elem_scenario3, "elem_scenario2")
-    
     path <- paste0("data-raw/elem/plans/plans_es_", i, ".rds")
     write_rds(plans, here(path), compress = "gz")
   }
@@ -61,4 +56,15 @@ plans <- rbind(plans1,
                plans2 %>% subset_sampled() %>% mutate(draw = factor(as.integer(draw) + 1 * nsims)),
                plans3 %>% subset_sampled() %>% mutate(draw = factor(as.integer(draw) + 2 * nsims)))
 
-write_rds(plans, here("data-raw/elem/plans/plans_es_mcmc_inc8_cap45_pop0.66.rds"), compress = "gz")
+# thin plans
+n_thin <- 2500
+thin_draws <- sample(unique(as.integer(plans$draw)), n_thin)
+plans <- plans %>%
+  filter(as.integer(draw) %in% thin_draws)
+plans$draw <- factor(plans$draw, levels = sort(unique(plans$draw)))
+plans <- plans %>%
+  add_reference(map$elem_scenario2, "elem_scenario4") %>%
+  add_reference(map$elem_scenario2, "elem_scenario3") %>%
+  add_reference(map$elem_scenario3, "elem_scenario2")
+
+write_rds(plans, here("data-raw/elem/plans/plans_es_mcmc_com0_inc9_cap35_pop0.66.rds"), compress = "gz")
