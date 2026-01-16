@@ -39,6 +39,17 @@ if (!file.exists(here(shp_path))) {
     arrange(object_id_school) %>%
     mutate(high25 = vctrs::vec_group_id(object_id_school))
   
+  # add current boundaries
+  es_current <- st_read("data/current_boundaries/current_es.geojson") %>%
+    mutate(name = str_sub(NAME, 1, -4)) %>%
+    left_join(es_name_to_id, by = "name")
+  ms_current <- st_read("data/current_boundaries/current_ms.geojson") %>%
+    mutate(name = str_sub(NAME, 1, -4)) %>%
+    left_join(ms_name_to_id, by = "name")
+  hs_current <- st_read("data/current_boundaries/current_hs.geojson") %>%
+    mutate(name = str_sub(NAME, 1, -4)) %>%
+    left_join(hs_name_to_id, by = "name")
+  
   # we leave out scenario 1 because that addresses attendance islands and
   # SMC is guaranteed to eliminate all attendance islands
   
@@ -52,6 +63,9 @@ if (!file.exists(here(shp_path))) {
   es_scenario_4 <- st_read("data/scenario_boundaries/scenario_4_es.geojson") %>%
     mutate(name = str_sub(name, 1, -4)) %>%
     left_join(es_name_to_id, by = "name")
+  es_scenario_5 <- st_read("data/scenario_boundaries/scenario_5_es.geojson") %>%
+    mutate(name = str_sub(name, 1, -4)) %>%
+    left_join(es_name_to_id, by = "name")
   
   # add Middle School scenario boundaries
   ms_scenario_2 <- st_read("data/scenario_boundaries/scenario_2_ms.geojson") %>%
@@ -61,6 +75,9 @@ if (!file.exists(here(shp_path))) {
     mutate(name = str_sub(name, 1, -4)) %>%
     left_join(ms_name_to_id, by = "name")
   ms_scenario_4 <- st_read("data/scenario_boundaries/scenario_4_ms.geojson") %>%
+    mutate(name = str_sub(name, 1, -4)) %>%
+    left_join(ms_name_to_id, by = "name")
+  ms_scenario_5 <- st_read("data/scenario_boundaries/scenario_5_ms.geojson") %>%
     mutate(name = str_sub(name, 1, -4)) %>%
     left_join(ms_name_to_id, by = "name")
   
@@ -74,27 +91,42 @@ if (!file.exists(here(shp_path))) {
   hs_scenario_4 <- st_read("data/scenario_boundaries/scenario_4_hs.geojson") %>%
     mutate(name = str_sub(name, 1, -4)) %>%
     left_join(hs_name_to_id, by = "name")
+  hs_scenario_5 <- st_read("data/scenario_boundaries/scenario_5_hs.geojson") %>%
+    mutate(name = str_sub(name, 1, -4)) %>%
+    left_join(hs_name_to_id, by = "name")
   
   ffx_blocks <- ffx_blocks %>%
     mutate(
+      elem_current = es_current$elem25[
+        geo_match(ffx_blocks, es_current, method = "area")],
       elem_scenario2 = es_scenario_2$elem25[
         geo_match(ffx_blocks, es_scenario_2, method = "area")],
       elem_scenario3 = es_scenario_3$elem25[
         geo_match(ffx_blocks, es_scenario_3, method = "area")],
       elem_scenario4 = es_scenario_4$elem25[
         geo_match(ffx_blocks, es_scenario_4, method = "area")],
+      elem_scenario5 = es_scenario_5$elem25[
+        geo_match(ffx_blocks, es_scenario_5, method = "area")],
+      middle_current = ms_current$middle25[
+        geo_match(ffx_blocks, ms_current, method = "area")],
       middle_scenario2 = ms_scenario_2$middle25[
         geo_match(ffx_blocks, ms_scenario_2, method = "area")],
       middle_scenario3 = ms_scenario_3$middle25[
         geo_match(ffx_blocks, ms_scenario_3, method = "area")],
       middle_scenario4 = ms_scenario_4$middle25[
         geo_match(ffx_blocks, ms_scenario_4, method = "area")],
+      middle_scenario5 = ms_scenario_5$middle25[
+        geo_match(ffx_blocks, ms_scenario_5, method = "area")],
+      high_current = hs_current$high25[
+        geo_match(ffx_blocks, hs_current, method = "area")],
       high_scenario2 = hs_scenario_2$high25[
         geo_match(ffx_blocks, hs_scenario_2, method = "area")],
       high_scenario3 = hs_scenario_3$high25[
         geo_match(ffx_blocks, hs_scenario_3, method = "area")],
       high_scenario4 = hs_scenario_4$high25[
-        geo_match(ffx_blocks, hs_scenario_4, method = "area")]
+        geo_match(ffx_blocks, hs_scenario_4, method = "area")],
+      high_scenario5 = hs_scenario_5$high25[
+        geo_match(ffx_blocks, hs_scenario_5, method = "area")]
     )
   
   # clean up columns
