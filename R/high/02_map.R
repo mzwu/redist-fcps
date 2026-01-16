@@ -19,14 +19,14 @@ nstarter <- 1
 middle_plans <- read_rds(here("data-raw/middle/plans/plans_ms_1.rds"))
 set.seed(2025)
 plans5 <- middle_plans %>%
-  filter(!(draw %in% c("middle_scenario2", "middle_scenario3", "middle_scenario4"))) %>%
+  filter(!(draw %in% c("middle_scenario2", "middle_scenario3", "middle_scenario4", "middle_scenario5"))) %>%
   filter(draw %in% sample(unique(draw), nstarter))
 draws5 <- as.numeric(match(levels(plans5$draw), middle_plans$draw %>% unique()))
 ffx_shp <- add_starter_plans(ffx_shp, middle_plans, draws5, "middle")
 
 # make redist_map
 map <- redist_map(ffx_shp, pop_tol = 0.9,
-                  existing_plan = high_scenario4, adj = ffx_shp$adj)
+                  existing_plan = high_current, adj = ffx_shp$adj)
 attr(map, "analysis_name") <- "HS_25_S4"
 attr(map, "shp") <- ffx_shp
 

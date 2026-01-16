@@ -6,7 +6,7 @@ nruns <- 1L
 constr <- redist_constr(map) %>%
 add_constr_commute(
   strength = 1,
-  current = map$elem_scenario4,
+  current = map$elem_current,
   commute_times = commute_times,
   only_districts = TRUE
   ) %>%
@@ -36,10 +36,10 @@ plans <- redist_smc(
 )
 
 plans <- plans %>%
-  add_reference(map$elem_scenario2, "elem_scenario3") %>%
-  add_reference(map$elem_scenario3, "elem_scenario2")
-
-plans <- match_numbers(plans, "elem_scenario4")
+  add_reference(map$elem_scenario5, "elem_scenario5") %>%
+  add_reference(map$elem_scenario4, "elem_scenario4") %>%
+  add_reference(map$elem_scenario3, "elem_scenario3") %>%
+  add_reference(map$elem_scenario2, "elem_scenario2")
 
 # keep only plans where each school is in a distinct district
 plans <- drop_duplicate_schools(plans, schools_idx)

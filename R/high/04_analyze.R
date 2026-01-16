@@ -1,6 +1,6 @@
 plans <- add_summary_stats(
   plans, map, 
-  current = map$high_scenario4, 
+  current = map$high_current, 
   schools = schools_idx, 
   commute_times = commute_times, 
   capacity = schools_capacity,

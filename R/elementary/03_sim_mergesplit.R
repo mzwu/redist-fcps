@@ -1,12 +1,12 @@
 # install redist_original/commit-mergesplit before running this
 
-nsims <- 2500 #1e5
+nsims <- 2e5
 nstarter <- 3
 
 init_plans <- read_rds(here("data-raw/elem/plans/plans_es_gsmc_com1_inc4_cap10_pop0.66.rds"))
 set.seed(2025)
 plans5 <- init_plans %>%
-  filter(!(draw %in% c("elem_scenario2", "elem_scenario3", "elem_scenario4"))) %>%
+  filter(!(draw %in% c("elem_scenario2", "elem_scenario3", "elem_scenario4", "elem_scenario5"))) %>%
   filter(draw %in% sample(unique(draw), nstarter))
 draws5 <- as.numeric(match(levels(plans5$draw), init_plans$draw %>% unique()))
 map <- add_starter_plans(map, init_plans, draws5, "init")
@@ -14,7 +14,7 @@ map <- add_starter_plans(map, init_plans, draws5, "init")
 constr <- redist_constr(map) %>%
   add_constr_commute(
     strength = 1,
-    current = map$elem_scenario4,
+    current = map$elem_current,
     commute_times = commute_times
   ) %>%
   add_constr_incumbency(
@@ -63,8 +63,9 @@ plans <- plans %>%
   filter(as.integer(draw) %in% thin_draws)
 plans$draw <- factor(plans$draw, levels = sort(unique(plans$draw)))
 plans <- plans %>%
-  add_reference(map$elem_scenario2, "elem_scenario4") %>%
-  add_reference(map$elem_scenario2, "elem_scenario3") %>%
-  add_reference(map$elem_scenario3, "elem_scenario2")
+  add_reference(map$elem_scenario5, "elem_scenario5") %>%
+  add_reference(map$elem_scenario4, "elem_scenario4") %>%
+  add_reference(map$elem_scenario3, "elem_scenario3") %>%
+  add_reference(map$elem_scenario2, "elem_scenario2")
 
 write_rds(plans, here("data-raw/elem/plans/plans_es_mcmc_com1_inc9_cap35_pop0.66.rds"), compress = "gz")
