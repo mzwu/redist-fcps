@@ -44,5 +44,5 @@ plans <- match_numbers(plans, "elem_scenario4")
 # keep only plans where each school is in a distinct district
 plans <- drop_duplicate_schools(plans, schools_idx)
 
-write_rds(plans, here("data-raw/elem/plans/plans_es_com1_inc4_cap10_pop0.66.rds"), compress = "gz")
+write_rds(plans, here("data-raw/elem/plans/plans_es_gsmc_com1_inc4_cap10_pop0.66.rds"), compress = "gz")
   
