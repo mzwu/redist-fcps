@@ -1,15 +1,15 @@
-# install redist_original/commit-mergesplit before running this
+# install redist_original/commute-mergesplit before running this
 
-nsims <- 2e5
+nsims <- 2500
 nstarter <- 3
 
 init_plans <- read_rds(here("data-raw/elem/plans/plans_es_gsmc_com1_inc4_cap10_pop0.66.rds"))
 set.seed(2025)
-plans5 <- init_plans %>%
+plans_init <- init_plans %>%
   filter(!(draw %in% c("elem_scenario2", "elem_scenario3", "elem_scenario4", "elem_scenario5"))) %>%
   filter(draw %in% sample(unique(draw), nstarter))
-draws5 <- as.numeric(match(levels(plans5$draw), init_plans$draw %>% unique()))
-map <- add_starter_plans(map, init_plans, draws5, "init")
+draws_init <- as.numeric(match(levels(plans_init$draw), init_plans$draw %>% unique()))
+map <- add_starter_plans(map, init_plans, draws_init, "init")
 
 constr <- redist_constr(map) %>%
   add_constr_commute(
@@ -18,11 +18,11 @@ constr <- redist_constr(map) %>%
     commute_times = commute_times
   ) %>%
   add_constr_incumbency(
-    strength = 9,
+    strength = 12,
     incumbents = schools_idx
   ) %>%
   add_constr_capacity(
-    strength = 35,
+    strength = 10,
     schools = schools_idx,
     schools_capacity = schools_capacity
   )
@@ -46,9 +46,9 @@ simulate_plans <- function(map, draws, nsims, nruns) {
   }
 }
 
-simulate_plans(map, draws5, nsims, nruns)
+simulate_plans(map, draws_init, nsims, nruns)
 
-# combine 3 sets of plans
+# combine plans
 plans1 <- read_rds(here("data-raw/elem/plans/plans_es_1.rds"))
 plans2 <- read_rds(here("data-raw/elem/plans/plans_es_2.rds"))
 plans3 <- read_rds(here("data-raw/elem/plans/plans_es_3.rds"))
@@ -61,11 +61,14 @@ n_thin <- 2500
 thin_draws <- sample(unique(as.integer(plans$draw)), n_thin)
 plans <- plans %>%
   filter(as.integer(draw) %in% thin_draws)
-plans$draw <- factor(plans$draw, levels = sort(unique(plans$draw)))
+plans$draw <- factor(
+  as.integer(plans$draw),
+  labels = seq_along(levels(plans$draw))
+)
 plans <- plans %>%
   add_reference(map$elem_scenario5, "elem_scenario5") %>%
   add_reference(map$elem_scenario4, "elem_scenario4") %>%
   add_reference(map$elem_scenario3, "elem_scenario3") %>%
   add_reference(map$elem_scenario2, "elem_scenario2")
 
-write_rds(plans, here("data-raw/elem/plans/plans_es_mcmc_com1_inc9_cap35_pop0.66.rds"), compress = "gz")
+write_rds(plans, here("data-raw/elem/plans/plans_es_mcmc_com1_inc12_cap10_pop0.66.rds"), compress = "gz")

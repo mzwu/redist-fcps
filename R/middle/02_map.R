@@ -14,20 +14,23 @@ capacity <- read_csv("data/school_capacities.csv") %>%
 ffx_ms <- ffx_ms %>%
   filter(OBJECTID %in% capacity$object_id_school)
 
-# sample 5 elementary plans as starter plans
-nstarter <- 1
-elem_plans <- read_rds(here("data-raw/elem/plans/plans_es.rds"))
+# sample elementary plans as starter plans
+nstarter <- 3
+elem_plans <- read_rds(here("data-raw/elem/plans/plans_es_mcmc_com1_inc12_cap10_pop0.66.rds"))
 set.seed(2025)
-plans5 <- elem_plans %>%
+plans_init <- elem_plans %>%
   filter(!(draw %in% c("elem_scenario2", "elem_scenario3", "elem_scenario4", "elem_scenario5"))) %>%
   filter(draw %in% sample(unique(draw), nstarter))
-draws5 <- as.numeric(match(levels(plans5$draw), elem_plans$draw %>% unique()))
-ffx_shp <- add_starter_plans(ffx_shp, elem_plans, draws5, "elem")
+draws_init <- as.numeric(match(levels(plans_init$draw), elem_plans$draw %>% unique()))
+ffx_shp <- add_starter_plans(ffx_shp, elem_plans, draws_init, "elem")
 
 # make redist_map
+# current MS capacity min/max is 844/1653 so 
+# average distance is (1653-844)/1653=0.49
+# add some margin of error to pop_tol
 map <- redist_map(ffx_shp, pop_tol = 0.5,
                   existing_plan = middle_current, adj = ffx_shp$adj)
-attr(map, "analysis_name") <- "MS_25_S4"
+attr(map, "analysis_name") <- "MS_25"
 attr(map, "shp") <- ffx_shp
 
 # get school row indices of map in ascending ID order

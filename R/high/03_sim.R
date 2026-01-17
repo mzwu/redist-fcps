@@ -52,7 +52,7 @@ simulate_plans <- function(map, draws, nsims, nruns) {
   }
 }
 
-simulate_plans(map, draws5, nsims, nruns)
+simulate_plans(map, draws_init, nsims, nruns)
 
 # combine 3 sets of plans
 plans1 <- read_rds(here("data-raw/high/plans/plans_hs_1.rds"))
@@ -67,7 +67,10 @@ n_thin <- 2500
 thin_draws <- sample(unique(as.integer(plans$draw)), n_thin)
 plans <- plans %>%
   filter(as.integer(draw) %in% thin_draws)
-plans$draw <- factor(plans$draw, levels = sort(unique(plans$draw)))
+plans$draw <- factor(
+  as.integer(plans$draw),
+  labels = seq_along(levels(plans$draw))
+)
 plans <- plans %>%
   add_reference(map$high_scenario5, "high_scenario5") %>%
   add_reference(map$high_scenario4, "high_scenario4") %>%

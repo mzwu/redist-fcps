@@ -1,3 +1,5 @@
+# install redist_original/phase-commute before running this
+
 nsims <- 2500
 nruns <- 1L
 
@@ -49,7 +51,7 @@ simulate_plans <- function(map, draws, nsims, nruns) {
   }
 }
 
-simulate_plans(map, draws5, nsims, nruns)
+simulate_plans(map, draws_init, nsims, nruns)
 
 # combine 3 sets of plans
 plans1 <- read_rds(here("data-raw/middle/plans/plans_ms_1.rds"))
@@ -64,7 +66,10 @@ n_thin <- 2500
 thin_draws <- sample(unique(as.integer(plans$draw)), n_thin)
 plans <- plans %>%
   filter(as.integer(draw) %in% thin_draws)
-plans$draw <- factor(plans$draw, levels = sort(unique(plans$draw)))
+plans$draw <- factor(
+  as.integer(plans$draw),
+  labels = seq_along(levels(plans$draw))
+)
 plans <- plans %>%
   add_reference(map$middle_scenario5, "middle_scenario5") %>%
   add_reference(map$middle_scenario4, "middle_scenario4") %>%

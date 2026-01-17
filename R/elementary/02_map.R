@@ -20,7 +20,7 @@ ffx_es <- ffx_es %>%
 # add some margin of error to pop_tol
 map <- redist_map(ffx_shp, pop_tol = 0.66,
                   existing_plan = elem_current, adj = ffx_shp$adj)
-attr(map, "analysis_name") <- "ES_25_S4"
+attr(map, "analysis_name") <- "ES_25"
 attr(map, "shp") <- ffx_shp
 
 # get school row indices of map in ascending ID order
