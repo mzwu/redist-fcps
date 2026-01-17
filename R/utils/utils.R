@@ -145,18 +145,15 @@ add_summary_stats <- function(plans, map, current, schools, commute_times, capac
     )
   
   # lower level attendance area splits and split feeder counts
-  # TODO: figure out how to deal with different lower level starter plans
   if (level == "middle") {
     plans <- plans |>
-      dplyr::mutate(elem_splits = redistmetrics::splits_admin(plans, map, elem_current)) |>
       dplyr::mutate(elem_split_feeders = split_feeders(plans,
-                                                       lower = map$elem_current,
+                                                       lower = map$elem_scenario5,
                                                        pop = map$pop))
   } else if (level == "high") {
     plans <- plans |>
-      dplyr::mutate(middle_splits = redistmetrics::splits_admin(plans, map, middle_current)) |>
       dplyr::mutate(middle_split_feeders = split_feeders(plans,
-                                                         lower = map$middle_current,
+                                                         lower = map$middle_scenario5,
                                                          pop = map$pop))
   }
   

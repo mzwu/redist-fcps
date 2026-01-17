@@ -15,14 +15,14 @@ ffx_ms <- ffx_ms %>%
   filter(OBJECTID %in% capacity$object_id_school)
 
 # sample elementary plans as starter plans
-nstarter <- 3
-elem_plans <- read_rds(here("data-raw/elem/plans/plans_es_mcmc_com1_inc12_cap10_pop0.66.rds"))
-set.seed(2025)
-plans_init <- elem_plans %>%
-  filter(!(draw %in% c("elem_scenario2", "elem_scenario3", "elem_scenario4", "elem_scenario5"))) %>%
-  filter(draw %in% sample(unique(draw), nstarter))
-draws_init <- as.numeric(match(levels(plans_init$draw), elem_plans$draw %>% unique()))
-ffx_shp <- add_starter_plans(ffx_shp, elem_plans, draws_init, "elem")
+# nstarter <- 3
+# elem_plans <- read_rds(here("data-raw/elem/plans/plans_es_mcmc_com1_inc12_cap10_pop0.66.rds"))
+# set.seed(2025)
+# plans_init <- elem_plans %>%
+#   filter(!(draw %in% c("elem_scenario2", "elem_scenario3", "elem_scenario4", "elem_scenario5"))) %>%
+#   filter(draw %in% sample(unique(draw), nstarter))
+# draws_init <- as.numeric(match(levels(plans_init$draw), elem_plans$draw %>% unique()))
+# ffx_shp <- add_starter_plans(ffx_shp, elem_plans, draws_init, "elem")
 
 # make redist_map
 # current MS capacity min/max is 844/1653 so 
