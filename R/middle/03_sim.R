@@ -7,21 +7,24 @@ constr <- redist_constr(map) %>%
   add_constr_commute(
     strength = 1,
     current = map$middle_current,
-    commute_times = commute_times
+    commute_times = commute_times,
+    only_districts = TRUE
   ) %>%
   add_constr_incumbency(
-    strength = 1,
+    strength = 19,
     incumbents = schools_idx
   ) %>%
   add_constr_split_feeders(
-    strength = 1,
+    strength = 2,
     lower = map$elem_scenario5,
-    schools = schools_idx
+    schools = schools_idx,
+    only_districts = TRUE
   ) %>%
   add_constr_capacity(
     strength = 1,
     schools = schools_idx,
-    schools_capacity = schools_capacity
+    schools_capacity = schools_capacity,
+    only_districts = TRUE
   )
 
 plans <- redist_smc(
@@ -38,18 +41,18 @@ plans <- redist_smc(
 )
 
 # thin plans
-n_thin <- 2500
-thin_draws <- sample(unique(as.integer(plans$draw)), n_thin)
-plans <- plans %>%
-  filter(as.integer(draw) %in% thin_draws)
-plans$draw <- factor(
-  as.integer(plans$draw),
-  labels = seq_along(levels(plans$draw))
-)
+# n_thin <- 2500
+# thin_draws <- sample(unique(as.integer(plans$draw)), n_thin)
+# plans <- plans %>%
+#   filter(as.integer(draw) %in% thin_draws)
+# plans$draw <- factor(
+#   as.integer(plans$draw),
+#   labels = seq_along(levels(plans$draw))
+# )
 plans <- plans %>%
   add_reference(map$middle_scenario5, "middle_scenario5") %>%
   add_reference(map$middle_scenario4, "middle_scenario4") %>%
   add_reference(map$middle_scenario3, "middle_scenario3") %>%
   add_reference(map$middle_scenario2, "middle_scenario2")
 
-write_rds(plans, here("data-raw/middle/plans/plans_ms.rds"))
+write_rds(plans, here("data-raw/middle/plans/plans_ms_com1_inc19_split2_cap1_pop0.2.rds"))

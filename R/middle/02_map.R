@@ -28,10 +28,11 @@ ffx_ms <- ffx_ms %>%
 # current MS capacity min/max is 844/1653 so 
 # average distance is (1653-844)/1653=0.49
 # add some margin of error to pop_tol
-map <- redist_map(ffx_shp, pop_tol = 0.5,
+map <- redist_map(ffx_shp, pop_tol = 0.2,
                   existing_plan = middle_current, adj = ffx_shp$adj)
 attr(map, "analysis_name") <- "MS_25"
 attr(map, "shp") <- ffx_shp
+#attr(map, "pop_bounds") <- attr(map, "pop_bounds") + 3750  # for pop_tol=0.36
 
 # get school row indices of map in ascending ID order
 schools_idx <- get_schools_idx(ffx_ms, map)
