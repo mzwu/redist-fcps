@@ -16,7 +16,7 @@ ffx_hs <- ffx_hs %>%
 
 # sample middle plans as starter plans
 nstarter <- 3
-middle_plans <- read_rds(here("data-raw/middle/plans/plans_ms_1.rds"))
+middle_plans <- read_rds(here("data-raw/middle/plans/plans_ms_com1_inc19_split2_cap1_pop0.2.rds"))
 set.seed(2025)
 plans_init <- middle_plans %>%
   filter(!(draw %in% c("middle_scenario2", "middle_scenario3", "middle_scenario4", "middle_scenario5"))) %>%
@@ -25,13 +25,13 @@ draws_init <- as.numeric(match(levels(plans_init$draw), middle_plans$draw %>% un
 ffx_shp <- add_starter_plans(ffx_shp, middle_plans, draws_init, "middle")
 
 # make redist_map
-# current HS capacity min/max is 366/3101 so 
-# average distance is (3101-366)/3101=0.88
-# add some margin of error to pop_tol
-map <- redist_map(ffx_shp, pop_tol = 0.9,
+# current HS capacity min/max is 1885/3101 so 
+# average distance is (3101-1885)/3101=39
+map <- redist_map(ffx_shp, pop_tol = 0.25,
                   existing_plan = high_current, adj = ffx_shp$adj)
 attr(map, "analysis_name") <- "HS_25"
 attr(map, "shp") <- ffx_shp
+attr(map, "pop_bounds") <- attr(map, "pop_bounds") + 1000
 
 # get school row indices of map in ascending ID order
 schools_idx <- get_schools_idx(ffx_hs, map)

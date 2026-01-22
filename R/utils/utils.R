@@ -144,16 +144,30 @@ add_summary_stats <- function(plans, map, current, schools, commute_times, capac
       attendance_islands = attendance_islands(plans, map)
     )
   
+  plans
+}
+
+#' Add split feeder statistics to the simulated plans
+#'
+#' @param plans a `redist_plans` object
+#' @param map a `redist_map` object
+#' @param starter_name enacted plan for the lower level of sims
+#' @param level string describing level of current sims, "elem" or "middle" or "high"
+#' @param ... additional summary statistics to compute
+#'
+#' @return a modified `redist_plans` object
+#' @export
+add_split_feeder_stats <- function(plans, map, starter_name, level, ...) {
   # lower level attendance area splits and split feeder counts
   if (level == "middle") {
     plans <- plans |>
       dplyr::mutate(elem_split_feeders = split_feeders(plans,
-                                                       lower = map$elem_scenario5,
+                                                       lower = map[[starter_name]],
                                                        pop = map$pop))
   } else if (level == "high") {
     plans <- plans |>
       dplyr::mutate(middle_split_feeders = split_feeders(plans,
-                                                         lower = map$middle_scenario5,
+                                                         lower = map[[starter_name]],
                                                          pop = map$pop))
   }
   
