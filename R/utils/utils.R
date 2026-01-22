@@ -46,7 +46,7 @@ get_schools_idx <- function(schools, map) {
 #' @export
 drop_duplicate_schools <- function(plans, schools_idx) {
   # get plans matrix
-  mat <- as.matrix(plans)
+  mat <- as.matrix(plans %>% subset_sampled())
   
   # rows with schools only
   school_assign <- mat[schools_idx, , drop = FALSE]
@@ -58,41 +58,11 @@ drop_duplicate_schools <- function(plans, schools_idx) {
   })
   
   # determine valid plans (no conflicts)
-  # first plan is enacted so index i is draw i-1
-  keep_plan <- which(!has_conflict) - 1
+  keep_plan <- which(!has_conflict)
   
   # keep valid plans and enacted plan
   plans %>%
-    filter((draw %in% c("elem25", "middle25", "high25")) | (draw %in% keep_plan))
-}
-
-#' Filter down to only plans where each school is assigned to a distinct 
-#' district - region version
-#'
-#' @param plans a `redist_plans` object
-#' @param schools_idx a vector containing the map indices of each school
-#'
-#' @return a filtered down `redist_plans` object
-#' @export
-drop_duplicate_schools_regions <- function(plans, schools_idx) {
-  # get plans matrix, remove first 3 reference plans
-  mat <- as.matrix(plans)[,-(1:3)]
-  
-  # rows with schools only
-  school_assign <- mat[schools_idx, , drop = FALSE]
-  
-  # mark plans where any district repeats among the school blocks
-  has_conflict <- apply(school_assign, 2, function(x) {
-    x2 <- x[x != 0 & !is.na(x)]
-    any(duplicated(x2))
-  })
-  
-  # determine valid plans (no conflicts)
-  keep_plan <- which(!has_conflict)
-  
-  # keep valid plans
-  plans %>%
-    filter(draw %in% keep_plan)
+    filter(str_detect(draw, "scenario") | str_detect(draw, "current") | (draw %in% keep_plan))
 }
 
 #' Add starter lower level plans to serve as counties
@@ -329,19 +299,19 @@ projected_average_heatmap <- function(plans, map, schools_idx, commute_times, le
   if (level == "elem") {
     blocks <- map %>%
       mutate(
-        current_commute = commute_times[row_number(), schools_idx[elem25]]
+        current_commute = commute_times[row_number(), schools_idx[elem_current]]
       )
   }
   else if (level == "middle") {
     blocks <- map %>%
       mutate(
-        current_commute = commute_times[row_number(), schools_idx[middle25]]
+        current_commute = commute_times[row_number(), schools_idx[middle_current]]
       )
   }
   else if (level == "high") {
     blocks <- map %>%
       mutate(
-        current_commute = commute_times[row_number(), schools_idx[high25]]
+        current_commute = commute_times[row_number(), schools_idx[high_current]]
       )
   }
   
