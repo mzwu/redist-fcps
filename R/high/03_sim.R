@@ -1,6 +1,6 @@
 # install redist_gsmc before running this
 
-nsims <- 2500
+nsims <- 1000
 nruns <- 1L
 
 constr <- redist_constr(map) %>%
@@ -11,11 +11,11 @@ constr <- redist_constr(map) %>%
   #   only_districts = TRUE
   # ) %>%
   add_constr_incumbency(
-    strength = 30,
+    strength = 10,
     incumbents = schools_idx
   ) %>%
   add_constr_split_feeders(
-    strength = 2,
+    strength = 5,
     lower = map$high_scenario5,
     schools = schools_idx,
     only_districts = TRUE
@@ -34,7 +34,7 @@ simulate_plans <- function(map, draws, nsims, nruns) {
     plans <- redist_smc(
       map,
       nsims = nsims, runs = nruns,
-      ncores = 60,
+      ncores = 64,
       counties = map[[starter_name]],
       constraints = constr,
       #pop_temper = 0.01,
@@ -88,4 +88,4 @@ plans_ref <- plans %>% filter(draw == "ref") %>%
 
 plans <- rbind(plans_ref, plans)
 
-write_rds(plans, here("data-raw/high/plans/plans_hs_com0_inc30_split2_cap0_pop0.25.rds"))
+write_rds(plans, here("data-raw/high/plans/plans_hs_com0_inc10_split5_cap0_pop0.25.rds"))

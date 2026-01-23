@@ -8,3 +8,7 @@ plans <- add_summary_stats(
 )
 validate_analysis(plans, map, "middle")
 summary(plans)
+
+plans_thin <- plans %>%
+  filter(school_outside_zone %in% c(0, 1))
+write_rds(plans, here(paste0("data-raw/middle/plans/plans_ms_com1_inc11_split0_cap1_pop0.2_thin.rds")))
