@@ -6,7 +6,7 @@ nstarter <- 3
 init_plans <- read_rds(here("data-raw/elem/plans/plans_es_gsmc_com1_inc4_cap10_pop0.66.rds"))
 set.seed(2025)
 plans_init <- init_plans %>%
-  filter(!(draw %in% c("elem_scenario2", "elem_scenario3", "elem_scenario4", "elem_scenario5"))) %>%
+  filter(!(str_detect(draw, "scenario") | str_detect(draw, "current"))) %>%
   filter(draw %in% sample(unique(draw), nstarter))
 draws_init <- as.numeric(match(levels(plans_init$draw), init_plans$draw %>% unique()))
 map <- add_starter_plans(map, init_plans, draws_init, "init")
@@ -65,7 +65,10 @@ plans$draw <- factor(
   as.integer(plans$draw),
   labels = seq_along(levels(plans$draw))
 )
+
+# add reference plans
 plans <- plans %>%
+  add_reference(map$elem_current, "elem_current") %>%
   add_reference(map$elem_scenario5, "elem_scenario5") %>%
   add_reference(map$elem_scenario4, "elem_scenario4") %>%
   add_reference(map$elem_scenario3, "elem_scenario3") %>%

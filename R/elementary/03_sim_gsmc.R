@@ -35,14 +35,16 @@ plans <- redist_smc(
   verbose = TRUE
 )
 
+# keep only plans where each school is in a distinct district
+plans <- drop_duplicate_schools(plans, schools_idx)
+
+# add reference plans
 plans <- plans %>%
+  add_reference(map$elem_current, "elem_current") %>%
   add_reference(map$elem_scenario5, "elem_scenario5") %>%
   add_reference(map$elem_scenario4, "elem_scenario4") %>%
   add_reference(map$elem_scenario3, "elem_scenario3") %>%
   add_reference(map$elem_scenario2, "elem_scenario2")
-
-# keep only plans where each school is in a distinct district
-plans <- drop_duplicate_schools(plans, schools_idx)
 
 write_rds(plans, here("data-raw/elem/plans/plans_es_gsmc_com1_inc4_cap10_pop0.66.rds"), compress = "gz")
   

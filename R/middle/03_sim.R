@@ -1,7 +1,8 @@
 # install redist_gsmc before running this
 
-nsims <- 2000
+nsims <- 1000
 nruns <- 1L
+set.seed(2025)
 
 constr <- redist_constr(map) %>%
   add_constr_commute(
@@ -11,7 +12,7 @@ constr <- redist_constr(map) %>%
     only_districts = TRUE
   ) %>%
   add_constr_incumbency(
-    strength = 50,
+    strength = 11,
     incumbents = schools_idx
   ) %>%
   # add_constr_split_feeders(
@@ -34,7 +35,7 @@ simulate_plans <- function(map, draws, nsims, nruns) {
     plans <- redist_smc(
       map,
       nsims = nsims, runs = nruns,
-      ncores = 60,
+      ncores = 64,
       counties = map[[starter_name]],
       constraints = constr,
       #pop_temper = 0.01,
@@ -46,7 +47,7 @@ simulate_plans <- function(map, draws, nsims, nruns) {
       subset_sampled()
     
     # keep only plans where each school is in a distinct district
-    plans <- drop_duplicate_schools(plans, schools_idx)
+    # plans <- drop_duplicate_schools(plans, schools_idx)
     
     # calculate split feeders
     plans <- add_split_feeder_stats(plans, map, starter_name, "middle")
@@ -56,7 +57,6 @@ simulate_plans <- function(map, draws, nsims, nruns) {
   }
 }
 
-set.seed(2025)
 simulate_plans(map, draws_init, nsims, nruns)
 
 # combine 3 sets of plans
@@ -88,4 +88,4 @@ plans_ref <- plans %>% filter(draw == "ref") %>%
 
 plans <- rbind(plans_ref, plans)
 
-write_rds(plans, here("data-raw/middle/plans/plans_ms_com1_inc50_split0_cap1_pop0.2_starter.rds"))
+write_rds(plans, here(paste0("data-raw/middle/plans/plans_ms_com1_inc11_split0_cap1_pop0.1.rds")))
