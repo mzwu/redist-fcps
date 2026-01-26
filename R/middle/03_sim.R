@@ -15,12 +15,6 @@ constr <- redist_constr(map) %>%
     strength = 11,
     incumbents = schools_idx
   ) %>%
-  # add_constr_split_feeders(
-  #   strength = 0.5,
-  #   lower = map$elem_scenario5,
-  #   schools = schools_idx,
-  #   only_districts = TRUE
-  # ) %>%
   add_constr_capacity(
     strength = 1,
     schools = schools_idx,
@@ -78,7 +72,7 @@ plans <- rbind(plans1,
 #   labels = seq_along(levels(plans$draw))
 # )
 
-plans_ref <- plans %>% filter(draw == "ref") %>%
+plans_ref <- plans %>% subset_sampled() %>%
   add_reference(map$middle_current, "middle_current") %>%
   add_reference(map$middle_scenario5, "middle_scenario5") %>%
   add_reference(map$middle_scenario4, "middle_scenario4") %>%

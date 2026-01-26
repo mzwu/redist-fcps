@@ -3,33 +3,33 @@
 nsims <- 1000
 nruns <- 1L
 
-constr <- redist_constr(map) %>%
-  # add_constr_commute(
-  #   strength = 1,
-  #   current = map$high_current,
-  #   commute_times = commute_times,
-  #   only_districts = TRUE
-  # ) %>%
-  add_constr_incumbency(
-    strength = 10,
-    incumbents = schools_idx
-  ) %>%
-  add_constr_split_feeders(
-    strength = 5,
-    lower = map$high_scenario5,
-    schools = schools_idx,
-    only_districts = TRUE
-  # ) %>%
-  # add_constr_capacity(
-  #   strength = 1,
-  #   schools = schools_idx,
-  #   schools_capacity = schools_capacity,
-  #   only_districts = TRUE
-  )
-
 simulate_plans <- function(map, draws, nsims, nruns) {
   for (i in 1:length(draws)) {
     starter_name <- paste0("middle_starter", i)
+    
+    constr <- redist_constr(map) %>%
+      # add_constr_commute(
+      #   strength = 1,
+      #   current = map$high_current,
+      #   commute_times = commute_times,
+      #   only_districts = TRUE
+      # ) %>%
+      add_constr_incumbency(
+        strength = 14,
+        incumbents = schools_idx
+      ) %>%
+      add_constr_split_feeders(
+        strength = 5,
+        lower = map[[starter_name]],
+        schools = schools_idx,
+        only_districts = TRUE
+        # ) %>%
+        # add_constr_capacity(
+        #   strength = 1,
+        #   schools = schools_idx,
+        #   schools_capacity = schools_capacity,
+        #   only_districts = TRUE
+      )
     
     plans <- redist_smc(
       map,
@@ -78,7 +78,7 @@ plans <- rbind(plans1,
 #   labels = seq_along(levels(plans$draw))
 # )
 
-plans_ref <- plans %>% filter(draw == "ref") %>%
+plans_ref <- plans %>% subset_sampled() %>%
   add_reference(map$high_current, "high_current") %>%
   add_reference(map$high_scenario5, "high_scenario5") %>%
   add_reference(map$high_scenario4, "high_scenario4") %>%
@@ -88,4 +88,4 @@ plans_ref <- plans %>% filter(draw == "ref") %>%
 
 plans <- rbind(plans_ref, plans)
 
-write_rds(plans, here("data-raw/high/plans/plans_hs_com0_inc10_split5_cap0_pop0.25.rds"))
+write_rds(plans, here(paste0("data-raw/high/plans/plans_hs_com0_inc14_split5_cap0_pop0.3.rds")))

@@ -27,11 +27,11 @@ ffx_shp <- add_starter_plans(ffx_shp, middle_plans, draws_init, "middle")
 # make redist_map
 # current HS capacity min/max is 1885/3101 so 
 # average distance is (3101-1885)/3101=0.39
-map <- redist_map(ffx_shp, pop_tol = 0.25,
+map <- redist_map(ffx_shp, pop_tol = 0.3,
                   existing_plan = high_current, adj = ffx_shp$adj)
 attr(map, "analysis_name") <- "HS_25"
 attr(map, "shp") <- ffx_shp
-attr(map, "pop_bounds") <- attr(map, "pop_bounds") + 1000
+# attr(map, "pop_bounds") <- attr(map, "pop_bounds") + 1000  # for pop_tol=0.25
 
 # get school row indices of map in ascending ID order
 schools_idx <- get_schools_idx(ffx_hs, map)
