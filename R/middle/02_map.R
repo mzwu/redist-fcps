@@ -28,7 +28,7 @@ ffx_shp <- add_starter_plans(ffx_shp, elem_plans, draws_init, "elem")
 # make redist_map
 # current MS capacity min/max is 844/1653 so 
 # average distance is (1653-844)/1653=0.49
-map <- redist_map(ffx_shp, pop_tol = 0.1,
+map <- redist_map(ffx_shp, pop_tol = 0.2,
                   existing_plan = middle_current, adj = ffx_shp$adj)
 attr(map, "analysis_name") <- "MS_25"
 attr(map, "shp") <- ffx_shp

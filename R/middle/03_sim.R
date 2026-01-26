@@ -82,4 +82,4 @@ plans_ref <- plans %>% subset_sampled() %>%
 
 plans <- rbind(plans_ref, plans)
 
-write_rds(plans, here(paste0("data-raw/middle/plans/plans_ms_com1_inc11_split0_cap1_pop0.1.rds")))
+write_rds(plans, here(paste0("data-raw/middle/plans/plans_ms_com1_inc11_split0_cap1_pop0.2.rds")))
