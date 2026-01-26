@@ -2,6 +2,7 @@
 
 nsims <- 1000
 nruns <- 1L
+set.seed(2025)
 
 simulate_plans <- function(map, draws, nsims, nruns) {
   for (i in 1:length(draws)) {
@@ -15,11 +16,11 @@ simulate_plans <- function(map, draws, nsims, nruns) {
       #   only_districts = TRUE
       # ) %>%
       add_constr_incumbency(
-        strength = 14,
+        strength = 15,
         incumbents = schools_idx
       ) %>%
       add_constr_split_feeders(
-        strength = 5,
+        strength = 4,
         lower = map[[starter_name]],
         schools = schools_idx,
         only_districts = TRUE
@@ -56,7 +57,6 @@ simulate_plans <- function(map, draws, nsims, nruns) {
   }
 }
 
-set.seed(2025)
 simulate_plans(map, draws_init, nsims, nruns)
 
 # combine 3 sets of plans
@@ -78,7 +78,7 @@ plans <- rbind(plans1,
 #   labels = seq_along(levels(plans$draw))
 # )
 
-plans_ref <- plans %>% subset_sampled() %>%
+plans_ref <- plans %>% filter(draw == "ref") %>%
   add_reference(map$high_current, "high_current") %>%
   add_reference(map$high_scenario5, "high_scenario5") %>%
   add_reference(map$high_scenario4, "high_scenario4") %>%
@@ -88,4 +88,4 @@ plans_ref <- plans %>% subset_sampled() %>%
 
 plans <- rbind(plans_ref, plans)
 
-write_rds(plans, here(paste0("data-raw/high/plans/plans_hs_com0_inc14_split5_cap0_pop0.3.rds")))
+write_rds(plans, here(paste0("data-raw/high/plans/plans_hs_com0_inc15_split4_cap0_pop0.25.rds")))
