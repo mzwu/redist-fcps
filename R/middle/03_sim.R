@@ -40,9 +40,6 @@ simulate_plans <- function(map, draws, nsims, nruns) {
     ) %>%
       subset_sampled()
     
-    # keep only plans where each school is in a distinct district
-    # plans <- drop_duplicate_schools(plans, schools_idx)
-    
     # calculate split feeders
     plans <- add_split_feeder_stats(plans, map, starter_name, "middle")
     
@@ -72,7 +69,7 @@ plans <- rbind(plans1,
 #   labels = seq_along(levels(plans$draw))
 # )
 
-plans_ref <- plans %>% subset_sampled() %>%
+plans_ref <- plans %>% filter(draw == "ref") %>%
   add_reference(map$middle_current, "middle_current") %>%
   add_reference(map$middle_scenario5, "middle_scenario5") %>%
   add_reference(map$middle_scenario4, "middle_scenario4") %>%

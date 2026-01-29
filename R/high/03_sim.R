@@ -46,9 +46,6 @@ simulate_plans <- function(map, draws, nsims, nruns) {
     ) %>%
       subset_sampled()
     
-    # keep only plans where each school is in a distinct district
-    # plans <- drop_duplicate_schools(plans, schools_idx)
-    
     # calculate split feeders
     plans <- add_split_feeder_stats(plans, map, starter_name, "high")
     
