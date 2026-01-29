@@ -8,3 +8,6 @@ plans <- add_summary_stats(
 )
 validate_analysis(plans, map, "elem")
 summary(plans)
+
+projected_average_heatmap(plans, map, schools_idx, commute_times, "elem")
+current_commute_heatmap(plans, map, schools_idx, commute_times, "elem")

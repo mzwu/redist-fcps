@@ -85,4 +85,4 @@ plans_ref <- plans %>% filter(draw == "ref") %>%
 
 plans <- rbind(plans_ref, plans)
 
-write_rds(plans, here(paste0("data-raw/high/plans/plans_hs_com0_inc15_split4_cap0_pop0.25.rds")))
+write_rds(plans, here(paste0("data-raw/high/plans/plans_hs_com0_inc15_split4_cap0_pop0.25.rds")), compress = "gz")
