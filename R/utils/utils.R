@@ -282,6 +282,48 @@ LLLMMMNNN"
   invisible(out_path)
 }
 
+#' Plot heatmap of each block's commute distance to currently assigned school
+#'
+#' @param plans a `redist_plans` object
+#' @param map a `redist_map` object
+#' @param schools_idx a vector containing the map indices of each school
+#'                    (ordered by normalized ID)
+#' @param commute_times a matrix containing commute distances between each block
+#'                      and each school
+#' @param level a string of "elem", "middle", or "high" denoting the current level
+#'
+#' @return a heatmap plot
+#' @export
+current_commute_heatmap <- function(plans, map, schools_idx, commute_times, level) {
+  # compute commute times for each block in enacted plan
+  if (level == "elem") {
+    blocks <- map %>%
+      mutate(
+        current_commute = commute_times[cbind(row_number(), elem_current)]
+      )
+  }
+  else if (level == "middle") {
+    blocks <- map %>%
+      mutate(
+        current_commute = commute_times[cbind(row_number(), middle_current)]
+      )
+  }
+  else if (level == "high") {
+    blocks <- map %>%
+      mutate(
+        current_commute = commute_times[cbind(row_number(), high_current)]
+      )
+  }
+  
+  p_blocks <- blocks %>%
+    ggplot() +
+    geom_sf(aes(fill = current_commute)) +
+    scale_fill_viridis_c("Current Commute \n(seconds)") +
+    theme_bw()
+  
+  p_blocks
+}
+
 #' Plot heatmap of each block's average sim - enacted commute distance to assigned school
 #'
 #' @param plans a `redist_plans` object
@@ -299,19 +341,19 @@ projected_average_heatmap <- function(plans, map, schools_idx, commute_times, le
   if (level == "elem") {
     blocks <- map %>%
       mutate(
-        current_commute = commute_times[row_number(), schools_idx[elem_current]]
+        current_commute = commute_times[cbind(row_number(), elem_current)]
       )
   }
   else if (level == "middle") {
     blocks <- map %>%
       mutate(
-        current_commute = commute_times[row_number(), schools_idx[middle_current]]
+        current_commute = commute_times[cbind(row_number(), middle_current)]
       )
   }
   else if (level == "high") {
     blocks <- map %>%
       mutate(
-        current_commute = commute_times[row_number(), schools_idx[high_current]]
+        current_commute = commute_times[cbind(row_number(), high_current)]
       )
   }
   
