@@ -9,5 +9,14 @@ plans <- add_summary_stats(
 validate_analysis(plans, map, "high")
 summary(plans)
 
+plans_test <- plans %>%
+  filter(school_outside_zone <= 0, middle_split_feeders <= 6) %>%
+  group_by(draw) %>% 
+  mutate(cap = max(capacity_util),
+         com = max(max_commute)) %>% 
+  filter(cap <= 1.618551,
+         com <= 65.505) %>% 
+  ungroup()
+
 projected_average_heatmap(plans, map, schools_idx, commute_times, "high")
 current_commute_heatmap(plans, map, schools_idx, commute_times, "high")
