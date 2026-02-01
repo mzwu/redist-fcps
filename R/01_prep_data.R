@@ -129,6 +129,12 @@ if (!file.exists(here(shp_path))) {
         geo_match(ffx_blocks, hs_scenario_5, method = "area")]
     )
   
+  # read in Fairfax County region data
+  ffx_regions <- read_sf("data/School_Regions/School_Regions.shp")
+  ffx_blocks <- ffx_blocks %>%
+    mutate(region = ffx_regions$REGION[
+      geo_match(ffx_blocks, ffx_regions, method = "area")])
+  
   # clean up columns
   ffx_blocks <- ffx_blocks %>%
     janitor::clean_names()
