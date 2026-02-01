@@ -9,6 +9,10 @@ plans <- add_summary_stats(
 validate_analysis(plans, map, "high")
 summary(plans)
 
+cutoff <- plans %>%
+  filter(draw == "high_scenario5") %>%
+  pull(disrupt_count) %>%
+  unique()
 plans_test <- plans %>%
   filter(school_outside_zone <= 0, middle_split_feeders <= 6) %>%
   group_by(draw) %>% 

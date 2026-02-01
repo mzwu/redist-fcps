@@ -111,7 +111,8 @@ add_summary_stats <- function(plans, map, current, schools, commute_times, capac
                                     pop = map$pop),
       school_outside_zone = school_outside_zone(plans,
                                                 schools = schools),
-      attendance_islands = attendance_islands(plans, map)
+      attendance_islands = attendance_islands(plans, map),
+      disrupt_count = disrupt_count(plans, map, current)
     )
   
   plans

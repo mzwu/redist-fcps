@@ -13,6 +13,10 @@ plans_thin <- plans %>%
   filter(school_outside_zone == 0)
 write_rds(plans, here(paste0("data-raw/middle/plans/plans_ms_com1_inc11_split0_cap1_pop0.2_thin0.rds")))
 
+cutoff <- plans %>%
+  filter(draw == "middle_scenario5") %>%
+  pull(disrupt_count) %>%
+  unique()
 plans_test <- plans %>%
   filter(school_outside_zone <= 1, elem_split_feeders <= 17) %>%
   group_by(draw) %>% 
