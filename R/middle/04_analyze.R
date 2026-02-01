@@ -24,3 +24,4 @@ plans_test <- plans %>%
 
 projected_average_heatmap(plans, map, schools_idx, commute_times, "middle")
 current_commute_heatmap(plans, map, schools_idx, commute_times, "middle")
+comparison_boxplots(plans, map, schools_idx, commute_times, "middle")

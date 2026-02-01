@@ -378,6 +378,82 @@ projected_average_heatmap <- function(plans, map, schools_idx, commute_times, le
   p_blocks
 }
 
+#' Plot double box plots of enacted commute distribution vs simulated commute distribution
+#'
+#' @param plans a `redist_plans` object
+#' @param map a `redist_map` object
+#' @param schools_idx a vector containing the map indices of each school
+#'                    (ordered by normalized ID)
+#' @param commute_times a matrix containing commute distances between each block
+#'                      and each school
+#' @param level a string of "elem", "middle", or "high" denoting the current level
+#'
+#' @return a heatmap plot
+#' @export
+comparison_boxplots <- function(plans, map, schools_idx, commute_times, level) {
+  # compute commute times for each block in enacted plan
+  if (level == "elem") {
+    blocks <- map %>%
+      mutate(
+        current_commute = commute_times[cbind(row_number(), elem_current)]
+      )
+  }
+  else if (level == "middle") {
+    blocks <- map %>%
+      mutate(
+        current_commute = commute_times[cbind(row_number(), middle_current)]
+      )
+  }
+  else if (level == "high") {
+    blocks <- map %>%
+      mutate(
+        current_commute = commute_times[cbind(row_number(), high_current)]
+      )
+  }
+  
+  # compute average commute time across simulated plans
+  mat <- as.matrix(plans)
+  n_blocks <- nrow(mat)
+  n_plans <- ncol(mat)
+  block_commutes <- matrix(NA, nrow = n_blocks, ncol = n_plans)
+  for (p in 1:n_plans) {
+    districts <- mat[, p]
+    block_commutes[, p] <- commute_times[cbind(1:n_blocks, districts)]
+  }
+  avg_commute_per_block <- rowMeans(block_commutes, na.rm = TRUE)
+  blocks$avg_sim_commute <- avg_commute_per_block
+  
+  # expand by duplicating rows according to the population of that block
+  blocks_expanded <- blocks[rep(seq_len(nrow(blocks)), blocks$pop), ]
+  
+  p_blocks <- blocks_expanded %>%
+    ggplot() +
+    geom_boxplot(
+      aes(x = factor(region), y = current_commute / 60, color = "Current"),
+      fill = NA,
+      position = position_nudge(x = -0.18),
+      width = 0.32
+    ) +
+    geom_boxplot(
+      aes(x = factor(region), y = avg_sim_commute / 60, color = "Simulated"),
+      fill = NA,
+      position = position_nudge(x = 0.18),
+      width = 0.32
+    ) +
+    scale_color_manual(
+      values = c("Current" = "blue", "Simulated" = "red"),
+      name = "Commute Times"
+    ) +
+    labs(
+      x = "Region",
+      y = "Commute Time (min)"
+    ) +
+    theme_bw()
+  
+  p_blocks
+  
+}
+
 #' Prep Particles for Partial SMC
 #'
 #' @param map primary map of entire state
