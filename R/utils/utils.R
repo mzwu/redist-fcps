@@ -425,7 +425,7 @@ comparison_boxplots <- function(plans, map, schools_idx, commute_times, level) {
   blocks$avg_sim_commute <- avg_commute_per_block
   
   # expand by duplicating rows according to the population of that block
-  blocks_expanded <- blocks[rep(seq_len(nrow(blocks)), blocks$pop), ]
+  blocks_expanded <- blocks[rep(seq_len(nrow(blocks)), pmax(blocks$pop, 1)), ]
   
   p_blocks <- blocks_expanded %>%
     ggplot() +
