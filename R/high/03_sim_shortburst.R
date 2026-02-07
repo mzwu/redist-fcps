@@ -77,4 +77,4 @@ plans <- plans %>%
   add_reference(map$high_scenario2, "high_scenario2") %>%
   add_split_feeder_stats(map, "middle_scenario5", "high")
 
-write_rds(plans, here(paste0("data-raw/high/plans/plans_hs_sb_pop0.25.rds")), compress = "gz")
+write_rds(plans, here("data-raw/high/plans/plans_hs_sb_pop0.25.rds"), compress = "gz")
