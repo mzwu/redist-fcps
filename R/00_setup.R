@@ -20,6 +20,7 @@ suppressMessages({
   library(jsonlite)
   library(osrm)
   library(assertthat)
+  library(tidyr)
   source("R/utils/utils.R")
 })
 

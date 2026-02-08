@@ -171,7 +171,7 @@ validate_analysis <- function(plans, map, level) {
   
   p_commute <- plot(plans, phase_commute, geom = "boxplot") + labs(title = "Phase-In Commute Disruption") + theme_bw()
   
-  p_max_commute <- plot(plans, max_commute, geom = "boxplot") + labs(title = "Max Commute") + theme_bw()
+  p_max_commute <- plot(plans, max_commute, geom = "boxplot") + labs(title = "Maximum Commute (min)") + theme_bw()
   
   p_capacity <- plot(plans, capacity_util, geom = "boxplot") + labs(title = "Capacity Utilization") + theme_bw()
   
@@ -197,6 +197,8 @@ validate_analysis <- function(plans, map, level) {
       max_commute_rank = rank(max_commute),
       capacity_rank = rank(capacity_util)
     )
+  
+  if (level != "elem") {
   
   p_comp <- p_comp +
     geom_text(data = enacted_summary,
@@ -255,6 +257,7 @@ validate_analysis <- function(plans, map, level) {
               lineheight = 0.8,
               alpha = 0.8,
               color = "red")
+  }
   
   draws <- sample(levels(subset_sampled(plans)$draw), 3)
   p_ex1 <- redist.plot.plans(plans, draws[1], map)
@@ -266,15 +269,21 @@ AAABBBCCC
 DDDDDDEEE
 FFFFFFGGG
 HHHHHHIII
-JJJJJJKKK
-LLLMMMNNN"
+JJJKKKLLL"
   
-  p <- patchwork::wrap_plots(A = p_weights, B = p_div, C = p_dev, 
-                             D = p_comp, E = p_comp_frac, F = p_commute,
-                             G = p_split, H = p_max_commute, 
-                             I = p_outside_zone, J = p_capacity, K = p_island, 
-                             L = p_ex1, M = p_ex2, N = p_ex3, design = layout) +
-    patchwork::plot_annotation(title = str_c(plans$draw[1], " Validation")) +
+  if (level == "elem") {
+    title <- "Elementary School"
+  } else if (level == "middle") {
+    title <- "Middle School"
+  } else {
+    title <- "High School"
+  }
+  
+  p <- patchwork::wrap_plots(A = p_div, B = p_dev, C = p_island, 
+                             D = p_comp, E = p_comp_frac, F = p_max_commute,
+                             G = p_outside_zone, H = p_capacity, I = p_split,
+                             J = p_ex1, K = p_ex2, L = p_ex3, design = layout) +
+    patchwork::plot_annotation(title = str_c(title, " Validation")) +
     patchwork::plot_layout(guides = "collect")
   
   out_path <- here(str_glue("data-raw/{level}/validation/validation_{format(Sys.time(), '%Y%m%d_%H%M')}.png"))
@@ -302,24 +311,28 @@ current_commute_heatmap <- function(plans, map, schools_idx, commute_times, leve
       mutate(
         current_commute = commute_times[cbind(row_number(), elem_current)]
       )
+    title <- "Elementary School: Current Commute"
   }
   else if (level == "middle") {
     blocks <- map %>%
       mutate(
         current_commute = commute_times[cbind(row_number(), middle_current)]
       )
+    title <- "Middle School: Current Commute"
   }
   else if (level == "high") {
     blocks <- map %>%
       mutate(
         current_commute = commute_times[cbind(row_number(), high_current)]
       )
+    title <- "High School: Current Commute"
   }
   
   p_blocks <- blocks %>%
     ggplot() +
-    geom_sf(aes(fill = current_commute)) +
-    scale_fill_viridis_c("Current Commute \n(seconds)") +
+    geom_sf(aes(fill = current_commute / 60)) +
+    labs(title = title) +
+    scale_fill_viridis_c("Current Commute \n(min)") +
     theme_bw()
   
   p_blocks
@@ -344,18 +357,21 @@ projected_average_heatmap <- function(plans, map, schools_idx, commute_times, le
       mutate(
         current_commute = commute_times[cbind(row_number(), elem_current)]
       )
+    title <- "Elementary School: Simulated Commute Change"
   }
   else if (level == "middle") {
     blocks <- map %>%
       mutate(
         current_commute = commute_times[cbind(row_number(), middle_current)]
       )
+    title <- "Middle School: Simulated Commute Change"
   }
   else if (level == "high") {
     blocks <- map %>%
       mutate(
         current_commute = commute_times[cbind(row_number(), high_current)]
       )
+    title <- "High School: Simulated Commute Change"
   }
   
   # compute average commute time across simulated plans
@@ -372,8 +388,11 @@ projected_average_heatmap <- function(plans, map, schools_idx, commute_times, le
   
   p_blocks <- blocks %>%
     ggplot() +
-    geom_sf(aes(fill = avg_sim_commute - current_commute)) +
-    scale_fill_viridis_c("Average Simulated - \nCurrent Commute \n(seconds)") +
+    geom_sf(aes(fill = (avg_sim_commute - current_commute) / 60)) +
+    labs(
+      title = title
+    ) +
+    scale_fill_viridis_c("Average Simulated - \nCurrent Commute \n(min)") +
     theme_bw()
   
   p_blocks
@@ -382,6 +401,7 @@ projected_average_heatmap <- function(plans, map, schools_idx, commute_times, le
 #' Plot double box plots of enacted commute distribution vs simulated commute distribution
 #'
 #' @param plans a `redist_plans` object
+#' @param plans_sb a `redist_plans` object generated using shortburst
 #' @param map a `redist_map` object
 #' @param schools_idx a vector containing the map indices of each school
 #'                    (ordered by normalized ID)
@@ -391,25 +411,40 @@ projected_average_heatmap <- function(plans, map, schools_idx, commute_times, le
 #'
 #' @return a heatmap plot
 #' @export
-comparison_boxplots <- function(plans, map, schools_idx, commute_times, level) {
+comparison_boxplots <- function(plans, plans_sb, map, schools_idx, commute_times, level) {
   # compute commute times for each block in enacted plan
   if (level == "elem") {
     blocks <- map %>%
       mutate(
-        current_commute = commute_times[cbind(row_number(), elem_current)]
+        current_commute = commute_times[cbind(row_number(), elem_current)],
+        scenario2_commute = commute_times[cbind(row_number(), elem_scenario2)],
+        scenario3_commute = commute_times[cbind(row_number(), elem_scenario3)],
+        scenario4_commute = commute_times[cbind(row_number(), elem_scenario4)],
+        scenario5_commute = commute_times[cbind(row_number(), elem_scenario5)]
       )
+    title <- "Elementary School: Commute Times Across Regions"
   }
   else if (level == "middle") {
     blocks <- map %>%
       mutate(
-        current_commute = commute_times[cbind(row_number(), middle_current)]
+        current_commute = commute_times[cbind(row_number(), middle_current)],
+        scenario2_commute = commute_times[cbind(row_number(), middle_scenario2)],
+        scenario3_commute = commute_times[cbind(row_number(), middle_scenario3)],
+        scenario4_commute = commute_times[cbind(row_number(), middle_scenario4)],
+        scenario5_commute = commute_times[cbind(row_number(), middle_scenario5)]
       )
+    title <- "Middle School: Commute Times Across Regions"
   }
   else if (level == "high") {
     blocks <- map %>%
       mutate(
-        current_commute = commute_times[cbind(row_number(), high_current)]
+        current_commute = commute_times[cbind(row_number(), high_current)],
+        scenario2_commute = commute_times[cbind(row_number(), high_scenario2)],
+        scenario3_commute = commute_times[cbind(row_number(), high_scenario3)],
+        scenario4_commute = commute_times[cbind(row_number(), high_scenario4)],
+        scenario5_commute = commute_times[cbind(row_number(), high_scenario5)]
       )
+    title <- "High School: Commute Times Across Regions"
   }
   
   # compute average commute time across simulated plans
@@ -424,30 +459,88 @@ comparison_boxplots <- function(plans, map, schools_idx, commute_times, level) {
   avg_commute_per_block <- rowMeans(block_commutes, na.rm = TRUE)
   blocks$avg_sim_commute <- avg_commute_per_block
   
+  mat <- as.matrix(plans_sb)
+  n_blocks <- nrow(mat)
+  n_plans <- ncol(mat)
+  block_commutes <- matrix(NA, nrow = n_blocks, ncol = n_plans)
+  for (p in 1:n_plans) {
+    districts <- mat[, p]
+    block_commutes[, p] <- commute_times[cbind(1:n_blocks, districts)]
+  }
+  avg_commute_per_block <- rowMeans(block_commutes, na.rm = TRUE)
+  blocks$avg_sb_commute <- avg_commute_per_block
+  
   # expand by duplicating rows according to the population of that block
   blocks_expanded <- blocks[rep(seq_len(nrow(blocks)), pmax(blocks$pop, 1)), ]
   
-  p_blocks <- blocks_expanded %>%
-    ggplot() +
+  blocks_long <- blocks_expanded %>%
+    pivot_longer(
+      cols = c(
+        current_commute,
+        scenario2_commute,
+        scenario3_commute,
+        scenario4_commute,
+        scenario5_commute,
+        avg_sim_commute,
+        avg_sb_commute
+      ),
+      names_to = "scenario",
+      values_to = "commute"
+    )
+  
+  blocks_long <- blocks_long %>%
+    mutate(
+      scenario = factor(
+        scenario,
+        levels = c(
+          "current_commute",
+          "scenario2_commute",
+          "scenario3_commute",
+          "scenario4_commute",
+          "scenario5_commute",
+          "avg_sim_commute",
+          "avg_sb_commute"
+        ),
+        labels = c(
+          "Current",
+          "Scenario 2",
+          "Scenario 3",
+          "Scenario 4",
+          "Scenario 5",
+          "Simulated",
+          "Shortburst"
+        )
+      )
+    )
+  
+  p_blocks <- blocks_long %>%
+    ggplot(aes(
+      x = factor(region),
+      y = commute / 60,
+      color = scenario
+    )) +
     geom_boxplot(
-      aes(x = factor(region), y = current_commute / 60, color = "Current"),
-      fill = NA,
-      position = position_nudge(x = -0.18),
-      width = 0.32
-    ) +
-    geom_boxplot(
-      aes(x = factor(region), y = avg_sim_commute / 60, color = "Simulated"),
-      fill = NA,
-      position = position_nudge(x = 0.18),
-      width = 0.32
-    ) +
-    scale_color_manual(
-      values = c("Current" = "blue", "Simulated" = "red"),
-      name = "Commute Times"
+      position = position_dodge(width = 0.8),
+      width = 0.6,
+      fill = NA
     ) +
     labs(
       x = "Region",
-      y = "Commute Time (min)"
+      y = "Commute Time (min)",
+      color = "Commute Times",
+      title = title
+    ) +
+    scale_color_discrete(
+      labels = c(
+        current_commute   = "Current",
+        scenario2_commute = "Scenario 2",
+        scenario3_commute = "Scenario 3",
+        scenario4_commute = "Scenario 4",
+        scenario5_commute = "Scenario 5",
+        avg_sim_commute   = "Simulated",
+        avg_sb_commute    = "Shortburst"
+      ),
+      name = "Commute Times"
     ) +
     theme_bw()
   

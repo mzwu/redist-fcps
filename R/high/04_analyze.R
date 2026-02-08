@@ -21,7 +21,3 @@ plans_test <- plans %>%
   filter(cap <= 1.618551,
          com <= 65.505) %>% 
   ungroup()
-
-projected_average_heatmap(plans, map, schools_idx, commute_times, "high")
-current_commute_heatmap(plans, map, schools_idx, commute_times, "high")
-comparison_boxplots(plans %>% subset_sampled(), map, schools_idx, commute_times, "high")

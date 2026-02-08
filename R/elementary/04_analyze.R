@@ -15,7 +15,3 @@ cutoff <- plans %>%
   unique()
 plans_test <- plans %>%
   filter(disrupt_count <= cutoff)
-
-projected_average_heatmap(plans, map, schools_idx, commute_times, "elem")
-current_commute_heatmap(plans, map, schools_idx, commute_times, "elem")
-comparison_boxplots(plans %>% subset_sampled(), map, schools_idx, commute_times, "elem")
