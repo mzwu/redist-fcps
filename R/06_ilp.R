@@ -1,13 +1,23 @@
 # save map adjacency matrix
-n <- nrow(map)
-adj_mat <- matrix(0L, nrow = n, ncol = n)
-for (u in seq_len(n)) {
-  neighbors <- as.integer(map$adj[[u]])
-  neighbors <- neighbors[!is.na(neighbors)]
-  adj_mat[u, neighbors + 1] <- 1L
-}
-adj_mat <- pmax(adj_mat, t(adj_mat))
-write.table(adj_mat, here("data/adjacency_matrix.csv"), sep = ",", row.names = FALSE, col.names = FALSE)
+edges <- do.call(
+  rbind,
+  lapply(seq_len(nrow(map)), function(u) {
+    neighbors <- as.integer(map$adj[[u]])
+    neighbors <- neighbors[!is.na(neighbors)]
+    data.frame(from = u-1, to = neighbors)
+  })
+)
+
+# make undirected (remove duplicates)
+edges <- edges[edges$from < edges$to, ]
+
+write.table(
+  edges,
+  here("data/edge_list.csv"),
+  sep = ",",
+  row.names = FALSE,
+  col.names = FALSE
+)
 
 # save populations for each block
 pop <- map$pop
