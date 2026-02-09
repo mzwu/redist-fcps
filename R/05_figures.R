@@ -131,6 +131,43 @@ ggsave(
   dpi = 300
 )
 
+middle_split_feeder_heatmap <- split_feeder_heatmap(
+  plans %>% subset_sampled(),
+  map, "middle"
+)
+ggsave(
+  filename = here("figures/middle_split_feeder_heatmap.png"),
+  plot = middle_split_feeder_heatmap,
+  width = 6,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
+
+middle_split_feeder_current <- split_feeder_current(
+  map, "middle"
+)
+ggsave(
+  filename = here("figures/middle_split_feeder_current.png"),
+  plot = middle_split_feeder_current,
+  width = 6,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
+
+middle_split_feeder_proposed <- split_feeder_proposed(
+  map, "middle"
+)
+ggsave(
+  filename = here("figures/middle_split_feeder_proposed.png"),
+  plot = middle_split_feeder_proposed,
+  width = 6,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
+
 plans_sb <- read_rds(here("data-raw/middle/plans/plans_ms_sb_pop0.2.rds"))
 
 middle_commute_boxplots <- comparison_boxplots(
@@ -209,6 +246,43 @@ ggsave(
   plot = high_cap_heatmap,
   width = 6,
   height = 8,
+  units = "in",
+  dpi = 300
+)
+
+high_split_feeder_heatmap <- split_feeder_heatmap(
+  plans %>% subset_sampled(),
+  map, "high"
+)
+ggsave(
+  filename = here("figures/high_split_feeder_heatmap.png"),
+  plot = high_split_feeder_heatmap,
+  width = 6,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
+
+high_split_feeder_current <- split_feeder_current(
+  map, "high"
+)
+ggsave(
+  filename = here("figures/high_split_feeder_current.png"),
+  plot = high_split_feeder_current,
+  width = 6,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
+
+high_split_feeder_proposed <- split_feeder_proposed(
+  map, "high"
+)
+ggsave(
+  filename = here("figures/high_split_feeder_proposed.png"),
+  plot = high_split_feeder_proposed,
+  width = 6,
+  height = 6,
   units = "in",
   dpi = 300
 )

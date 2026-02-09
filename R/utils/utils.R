@@ -475,6 +475,222 @@ capacity_improvement_heatmap <- function(plans, map, schools_idx, schools_capaci
   p_blocks
 }
 
+#' Plot heatmap of each block's average existence in a split feeder
+#'
+#' @param plans a `redist_plans` object
+#' @param map a `redist_map` object
+#' @param level a string of "elem", "middle", or "high" denoting the current level
+#'
+#' @return a heatmap plot
+#' @export
+split_feeder_heatmap <- function(plans, map, level) {
+  # compute average commute time across simulated plans
+  mat <- as.matrix(plans)
+  n_blocks <- nrow(mat)
+  n_plans <- ncol(mat)
+  block_split_feeder <- matrix(NA, nrow = n_blocks, ncol = n_plans)
+  
+  if (level == "middle") {
+    for (p in (1):(n_plans/3)) {
+      title <- "Middle School: Average Split Feeders"
+      map$sim <- mat[, p]
+      blocks <- map %>%
+        group_by(elem_starter1) %>%
+        mutate(total_lower_pop = sum(pop)) %>%
+        ungroup() %>%
+        group_by(elem_starter1, sim) %>%
+        mutate(
+          lower_to_upper_pop = sum(pop),
+          sim_split_feeder = lower_to_upper_pop / total_lower_pop < 0.25
+        ) %>%
+        ungroup()
+      block_split_feeder[, p] <- blocks$sim_split_feeder
+    }
+    for (p in (n_plans/3+1):(2*n_plans/3)) {
+      map$sim <- mat[, p]
+      blocks <- map %>%
+        group_by(elem_starter2) %>%
+        mutate(total_lower_pop = sum(pop)) %>%
+        ungroup() %>%
+        group_by(elem_starter2, sim) %>%
+        mutate(
+          lower_to_upper_pop = sum(pop),
+          sim_split_feeder = lower_to_upper_pop / total_lower_pop < 0.25
+        ) %>%
+        ungroup()
+      block_split_feeder[, p] <- blocks$sim_split_feeder
+    }
+    for (p in (2*n_plans/3+1):(n_plans)) {
+      map$sim <- mat[, p]
+      blocks <- map %>%
+        group_by(elem_starter3) %>%
+        mutate(total_lower_pop = sum(pop)) %>%
+        ungroup() %>%
+        group_by(elem_starter3, sim) %>%
+        mutate(
+          lower_to_upper_pop = sum(pop),
+          sim_split_feeder = lower_to_upper_pop / total_lower_pop < 0.25
+        ) %>%
+        ungroup()
+      block_split_feeder[, p] <- blocks$sim_split_feeder
+    }
+  } else if (level == "high") {
+    title <- "High School: Average Split Feeders"
+    for (p in (1):(n_plans/3)) {
+      map$sim <- mat[, p]
+      blocks <- map %>%
+        group_by(middle_starter1) %>%
+        mutate(total_lower_pop = sum(pop)) %>%
+        ungroup() %>%
+        group_by(middle_starter1, sim) %>%
+        mutate(
+          lower_to_upper_pop = sum(pop),
+          sim_split_feeder = lower_to_upper_pop / total_lower_pop < 0.25
+        ) %>%
+        ungroup()
+      block_split_feeder[, p] <- blocks$sim_split_feeder
+    }
+    for (p in (n_plans/3+1):(2*n_plans/3)) {
+      map$sim <- mat[, p]
+      blocks <- map %>%
+        group_by(middle_starter2) %>%
+        mutate(total_lower_pop = sum(pop)) %>%
+        ungroup() %>%
+        group_by(middle_starter2, sim) %>%
+        mutate(
+          lower_to_upper_pop = sum(pop),
+          sim_split_feeder = lower_to_upper_pop / total_lower_pop < 0.25
+        ) %>%
+        ungroup()
+      block_split_feeder[, p] <- blocks$sim_split_feeder
+    }
+    for (p in (2*n_plans/3+1):(n_plans)) {
+      map$sim <- mat[, p]
+      blocks <- map %>%
+        group_by(middle_starter3) %>%
+        mutate(total_lower_pop = sum(pop)) %>%
+        ungroup() %>%
+        group_by(middle_starter3, sim) %>%
+        mutate(
+          lower_to_upper_pop = sum(pop),
+          sim_split_feeder = lower_to_upper_pop / total_lower_pop < 0.25
+        ) %>%
+        ungroup()
+      block_split_feeder[, p] <- blocks$sim_split_feeder
+    }
+  }
+  
+  avg_split_per_block <- rowMeans(block_split_feeder, na.rm = TRUE)
+  blocks$avg_split_feeder <- avg_split_per_block
+  
+  p_blocks <- blocks %>%
+    ggplot() +
+    geom_sf(aes(fill = avg_split_feeder)) +
+    labs(
+      title = title
+    ) +
+    scale_fill_viridis_c("Average Simulated \nSplit Feeder") +
+    theme_bw()
+  
+  p_blocks
+}
+
+#' Plot heatmap of each block's current split feeder status
+#'
+#' @param map a `redist_map` object
+#' @param level a string of "elem", "middle", or "high" denoting the current level
+#'
+#' @return a heatmap plot
+#' @export
+split_feeder_current <- function(map, level) {
+  # compute capacity utilizations for each block in enacted plan
+  if (level == "middle") {
+    blocks <- map %>%
+      group_by(elem_current) %>%
+      mutate(total_lower_pop = sum(pop)) %>%
+      ungroup() %>%
+      group_by(elem_current, middle_current) %>%
+      mutate(
+        lower_to_upper_pop = sum(pop),
+        current_split_feeder = lower_to_upper_pop / total_lower_pop < 0.25
+      ) %>%
+      ungroup()
+    title <- "Middle School: Current Split Feeders"
+  }
+  else if (level == "high") {
+    blocks <- map %>%
+      group_by(middle_current) %>%
+      mutate(total_lower_pop = sum(pop)) %>%
+      ungroup() %>%
+      group_by(middle_current, high_current) %>%
+      mutate(
+        lower_to_upper_pop = sum(pop),
+        current_split_feeder = lower_to_upper_pop / total_lower_pop < 0.25
+      ) %>%
+      ungroup()
+    title <- "High School: Current Split Feeders"
+  }
+  
+  p_blocks <- blocks %>%
+    ggplot() +
+    geom_sf(aes(fill = current_split_feeder)) +
+    labs(
+      title = title
+    ) +
+    scale_fill_viridis_d("Current Split \nFeeder Status") +
+    theme_bw()
+  
+  p_blocks
+}
+
+#' Plot heatmap of each block's proposed split feeder status
+#'
+#' @param map a `redist_map` object
+#' @param level a string of "elem", "middle", or "high" denoting the current level
+#'
+#' @return a heatmap plot
+#' @export
+split_feeder_proposed <- function(map, level) {
+  # compute capacity utilizations for each block in enacted plan
+  if (level == "middle") {
+    blocks <- map %>%
+      group_by(elem_scenario5) %>%
+      mutate(total_lower_pop = sum(pop)) %>%
+      ungroup() %>%
+      group_by(elem_scenario5, middle_scenario5) %>%
+      mutate(
+        lower_to_upper_pop = sum(pop),
+        scenario5_split_feeder = lower_to_upper_pop / total_lower_pop < 0.25
+      ) %>%
+      ungroup()
+    title <- "Middle School: Proposed Split Feeders"
+  }
+  else if (level == "high") {
+    blocks <- map %>%
+      group_by(middle_scenario5) %>%
+      mutate(total_lower_pop = sum(pop)) %>%
+      ungroup() %>%
+      group_by(middle_scenario5, high_scenario5) %>%
+      mutate(
+        lower_to_upper_pop = sum(pop),
+        scenario5_split_feeder = lower_to_upper_pop / total_lower_pop < 0.25
+      ) %>%
+      ungroup()
+    title <- "High School: Proposed Split Feeders"
+  }
+  
+  p_blocks <- blocks %>%
+    ggplot() +
+    geom_sf(aes(fill = scenario5_split_feeder)) +
+    labs(
+      title = title
+    ) +
+    scale_fill_viridis_d("Proposed Split \nFeeder Status") +
+    theme_bw()
+  
+  p_blocks
+}
+
 #' Plot double box plots of enacted commute distribution vs simulated commute distribution
 #'
 #' @param plans a `redist_plans` object
