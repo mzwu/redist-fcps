@@ -1,8 +1,10 @@
 region_map <- map %>%
   ggplot(aes(fill = factor(region))) +
   geom_sf() +
-  labs(title = "Pyramid Regions") +
-  scale_fill_viridis_d(name = "Region") +
+  labs(
+    title = "Pyramid Regions", 
+    fill = "Region"
+  ) +
   theme_bw()
 ggsave(
   filename = here("figures/region_map.png"),
