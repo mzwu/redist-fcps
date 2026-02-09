@@ -33,6 +33,22 @@ ggsave(
   dpi = 300
 )
 
+elem_cap_heatmap <- capacity_improvement_heatmap(
+  plans,
+  map,
+  schools_idx,
+  schools_capacity,
+  "elem"
+)
+ggsave(
+  filename = here("figures/elem_cap_heatmap.png"),
+  plot = elem_cap_heatmap,
+  width = 6,
+  height = 8,
+  units = "in",
+  dpi = 300
+)
+
 plans_sb <- read_rds(here("data-raw/elem/plans_es_sb_pop0.66.rds"))
 
 elem_commute_boxplots <- comparison_boxplots(
@@ -43,6 +59,20 @@ elem_commute_boxplots <- comparison_boxplots(
 ggsave(
   filename = here("figures/elem_commute_boxplots.png"),
   plot = elem_commute_boxplots,
+  width = 9,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
+
+elem_cap_boxplots <- capacity_boxplots(
+  plans %>% subset_sampled(),
+  plans_sb %>% subset_sampled(),
+  map, schools_idx, schools_capacity, "elem"
+)
+ggsave(
+  filename = here("figures/elem_cap_boxplots.png"),
+  plot = elem_cap_boxplots,
   width = 9,
   height = 6,
   units = "in",
@@ -85,6 +115,22 @@ ggsave(
   dpi = 300
 )
 
+middle_cap_heatmap <- capacity_improvement_heatmap(
+  plans,
+  map,
+  schools_idx,
+  schools_capacity,
+  "middle"
+)
+ggsave(
+  filename = here("figures/middle_cap_heatmap.png"),
+  plot = middle_cap_heatmap,
+  width = 6,
+  height = 8,
+  units = "in",
+  dpi = 300
+)
+
 plans_sb <- read_rds(here("data-raw/middle/plans/plans_ms_sb_pop0.2.rds"))
 
 middle_commute_boxplots <- comparison_boxplots(
@@ -95,6 +141,20 @@ middle_commute_boxplots <- comparison_boxplots(
 ggsave(
   filename = here("figures/middle_commute_boxplots.png"),
   plot = middle_commute_boxplots,
+  width = 9,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
+
+middle_cap_boxplots <- capacity_boxplots(
+  plans %>% subset_sampled(),
+  plans_sb %>% subset_sampled(),
+  map, schools_idx, schools_capacity, "middle"
+)
+ggsave(
+  filename = here("figures/middle_cap_boxplots.png"),
+  plot = middle_cap_boxplots,
   width = 9,
   height = 6,
   units = "in",
@@ -137,6 +197,22 @@ ggsave(
   dpi = 300
 )
 
+high_cap_heatmap <- capacity_improvement_heatmap(
+  plans,
+  map,
+  schools_idx,
+  schools_capacity,
+  "high"
+)
+ggsave(
+  filename = here("figures/high_cap_heatmap.png"),
+  plot = high_cap_heatmap,
+  width = 6,
+  height = 8,
+  units = "in",
+  dpi = 300
+)
+
 plans_sb <- read_rds(here("data-raw/high/plans/plans_hs_sb_pop0.25.rds"))
 
 high_commute_boxplots <- comparison_boxplots(
@@ -147,6 +223,20 @@ high_commute_boxplots <- comparison_boxplots(
 ggsave(
   filename = here("figures/high_commute_boxplots.png"),
   plot = high_commute_boxplots,
+  width = 9,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
+
+high_cap_boxplots <- capacity_boxplots(
+  plans %>% subset_sampled(),
+  plans_sb %>% subset_sampled(),
+  map, schools_idx, schools_capacity, "high"
+)
+ggsave(
+  filename = here("figures/high_cap_boxplots.png"),
+  plot = high_cap_boxplots,
   width = 9,
   height = 6,
   units = "in",

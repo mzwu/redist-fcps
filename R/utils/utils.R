@@ -398,6 +398,83 @@ projected_average_heatmap <- function(plans, map, schools_idx, commute_times, le
   p_blocks
 }
 
+#' Plot heatmap of each block's average sim - enacted capacity utilization of assigned school
+#'
+#' @param plans a `redist_plans` object
+#' @param map a `redist_map` object
+#' @param schools_idx a vector containing the map indices of each school
+#'                    (ordered by normalized ID)
+#' @param schools_capacity a vector containing the enrollment capacity of each school
+#' @param level a string of "elem", "middle", or "high" denoting the current level
+#'
+#' @return a heatmap plot
+#' @export
+capacity_improvement_heatmap <- function(plans, map, schools_idx, schools_capacity, level) {
+  total_pop <- sum(map$pop)
+  total_capacity <- sum(schools_capacity)
+  
+  # compute capacity utilizations for each block in enacted plan
+  if (level == "elem") {
+    blocks <- map %>%
+      group_by(elem_current) %>%
+      mutate(
+        zone_pop = sum(pop),
+        zone_capacity = schools_capacity[elem_current],
+        current_cap = (zone_pop / total_pop) * (total_capacity / zone_capacity)
+      ) %>%
+      ungroup()
+    title <- "Elementary School: Simulated Capacity Ratio \nImprovement Over Current"
+  }
+  else if (level == "middle") {
+    blocks <- map %>%
+      group_by(middle_current) %>%
+      mutate(
+        zone_pop = sum(pop),
+        zone_capacity = schools_capacity[middle_current],
+        current_cap = (zone_pop / total_pop) * (total_capacity / zone_capacity)
+      ) %>%
+      ungroup()
+    title <- "Middle School: Simulated Capacity Ratio \nImprovement Over Current"
+  }
+  else if (level == "high") {
+    blocks <- map %>%
+      group_by(high_current) %>%
+      mutate(
+        zone_pop = sum(pop),
+        zone_capacity = schools_capacity[high_current],
+        current_cap = (zone_pop / total_pop) * (total_capacity / zone_capacity)
+      ) %>%
+      ungroup()
+    title <- "High School: Simulated Capacity Ratio \nImprovement Over Current"
+  }
+  
+  # compute average commute time across simulated plans
+  mat <- as.matrix(plans)
+  n_blocks <- nrow(mat)
+  n_plans <- ncol(mat)
+  block_cap_util <- matrix(NA, nrow = n_blocks, ncol = n_plans)
+  for (p in 1:n_plans) {
+    districts <- mat[, p]
+    zone_pop <- tapply(map$pop, districts, sum)  # total pop per zone
+    zone_cap <- schools_capacity[as.integer(names(zone_pop))]  # capacity per zone
+    zone_util <- (zone_pop / total_pop) * (total_capacity / zone_cap)  # utilization per zone
+    block_cap_util[, p] <- zone_util[as.character(districts)]  # assign back to blocks
+  }
+  avg_cap_per_block <- rowMeans(block_cap_util, na.rm = TRUE)
+  blocks$avg_sim_cap <- avg_cap_per_block
+  
+  p_blocks <- blocks %>%
+    ggplot() +
+    geom_sf(aes(fill = abs(current_cap - 1) - abs(avg_sim_cap - 1))) +
+    labs(
+      title = title
+    ) +
+    scale_fill_viridis_c("Current Capacity \nUtilization Ratio \nDistance From 1 \n- Average Simulated") +
+    theme_bw()
+  
+  p_blocks
+}
+
 #' Plot double box plots of enacted commute distribution vs simulated commute distribution
 #'
 #' @param plans a `redist_plans` object
@@ -541,6 +618,218 @@ comparison_boxplots <- function(plans, plans_sb, map, schools_idx, commute_times
         avg_sb_commute    = "Shortburst"
       ),
       name = "Commute Times"
+    ) +
+    theme_bw()
+  
+  p_blocks
+  
+}
+
+#' Plot double box plots of enacted capacity utilization distribution vs simulated capacity utilization distribution
+#'
+#' @param plans a `redist_plans` object
+#' @param plans_sb a `redist_plans` object generated using shortburst
+#' @param map a `redist_map` object
+#' @param schools_idx a vector containing the map indices of each school
+#'                    (ordered by normalized ID)
+#' @param schools_capacity a vector containing the enrollment capacity of each school
+#' @param level a string of "elem", "middle", or "high" denoting the current level
+#'
+#' @return a heatmap plot
+#' @export
+capacity_boxplots <- function(plans, plans_sb, map, schools_idx, schools_capacity, level) {
+  total_pop <- sum(map$pop)
+  total_capacity <- sum(schools_capacity)
+  
+  # compute capacity utilization ratios for each block in enacted plan
+  if (level == "elem") {
+    blocks <- map %>%
+      group_by(elem_current) %>%
+      mutate(
+        current_cap = (sum(pop) / total_pop) * (total_capacity / schools_capacity[elem_current])
+      ) %>%
+      ungroup() %>%
+      group_by(elem_scenario2) %>%
+      mutate(
+        scenario2_cap = (sum(pop) / total_pop) * (total_capacity / schools_capacity[elem_scenario2])
+      ) %>%
+      ungroup() %>%
+      group_by(elem_scenario3) %>%
+      mutate(
+        scenario3_cap = (sum(pop) / total_pop) * (total_capacity / schools_capacity[elem_scenario3])
+      ) %>%
+      ungroup() %>%
+      group_by(elem_scenario4) %>%
+      mutate(
+        scenario4_cap = (sum(pop) / total_pop) * (total_capacity / schools_capacity[elem_scenario4])
+      ) %>%
+      ungroup() %>%
+      group_by(elem_scenario5) %>%
+      mutate(
+        scenario5_cap = (sum(pop) / total_pop) * (total_capacity / schools_capacity[elem_scenario5])
+      ) %>%
+      ungroup()
+    title <- "Elementary School: Capacity Utilization Ratios"
+  }
+  else if (level == "middle") {
+    blocks <- map %>%
+      group_by(middle_current) %>%
+      mutate(
+        current_cap = (sum(pop) / total_pop) * (total_capacity / schools_capacity[middle_current])
+      ) %>%
+      ungroup() %>%
+      group_by(middle_scenario2) %>%
+      mutate(
+        scenario2_cap = (sum(pop) / total_pop) * (total_capacity / schools_capacity[middle_scenario2])
+      ) %>%
+      ungroup() %>%
+      group_by(middle_scenario3) %>%
+      mutate(
+        scenario3_cap = (sum(pop) / total_pop) * (total_capacity / schools_capacity[middle_scenario3])
+      ) %>%
+      ungroup() %>%
+      group_by(middle_scenario4) %>%
+      mutate(
+        scenario4_cap = (sum(pop) / total_pop) * (total_capacity / schools_capacity[middle_scenario4])
+      ) %>%
+      ungroup() %>%
+      group_by(middle_scenario5) %>%
+      mutate(
+        scenario5_cap = (sum(pop) / total_pop) * (total_capacity / schools_capacity[middle_scenario5])
+      ) %>%
+      ungroup()
+    title <- "Middle School: Capacity Utilization Ratios"
+  }
+  else if (level == "high") {
+    blocks <- map %>%
+      group_by(high_current) %>%
+      mutate(
+        current_cap = (sum(pop) / total_pop) * (total_capacity / schools_capacity[high_current])
+      ) %>%
+      ungroup() %>%
+      group_by(high_scenario2) %>%
+      mutate(
+        scenario2_cap = (sum(pop) / total_pop) * (total_capacity / schools_capacity[high_scenario2])
+      ) %>%
+      ungroup() %>%
+      group_by(high_scenario3) %>%
+      mutate(
+        scenario3_cap = (sum(pop) / total_pop) * (total_capacity / schools_capacity[high_scenario3])
+      ) %>%
+      ungroup() %>%
+      group_by(high_scenario4) %>%
+      mutate(
+        scenario4_cap = (sum(pop) / total_pop) * (total_capacity / schools_capacity[high_scenario4])
+      ) %>%
+      ungroup() %>%
+      group_by(high_scenario5) %>%
+      mutate(
+        scenario5_cap = (sum(pop) / total_pop) * (total_capacity / schools_capacity[high_scenario5])
+      ) %>%
+      ungroup()
+    title <- "High School: Capacity Utilization Ratios"
+  }
+  
+  # compute average commute time across simulated plans
+  mat <- as.matrix(plans)
+  n_blocks <- nrow(mat)
+  n_plans <- ncol(mat)
+  block_cap_util <- matrix(NA, nrow = n_blocks, ncol = n_plans)
+  for (p in 1:n_plans) {
+    districts <- mat[, p]
+    zone_pop <- tapply(map$pop, districts, sum)  # total pop per zone
+    zone_cap <- schools_capacity[as.integer(names(zone_pop))]  # capacity per zone
+    zone_util <- (zone_pop / total_pop) * (total_capacity / zone_cap)  # utilization per zone
+    block_cap_util[, p] <- zone_util[as.character(districts)]  # assign back to blocks
+  }
+  avg_cap_per_block <- rowMeans(block_cap_util, na.rm = TRUE)
+  blocks$avg_sim_cap <- avg_cap_per_block
+  
+  mat <- as.matrix(plans_sb)
+  n_blocks <- nrow(mat)
+  n_plans <- ncol(mat)
+  block_cap_util <- matrix(NA, nrow = n_blocks, ncol = n_plans)
+  for (p in 1:n_plans) {
+    districts <- mat[, p]
+    zone_pop <- tapply(map$pop, districts, sum)  # total pop per zone
+    zone_cap <- schools_capacity[as.integer(names(zone_pop))]  # capacity per zone
+    zone_util <- (zone_pop / total_pop) * (total_capacity / zone_cap)  # utilization per zone
+    block_cap_util[, p] <- zone_util[as.character(districts)]  # assign back to blocks
+  }
+  avg_cap_per_block <- rowMeans(block_cap_util, na.rm = TRUE)
+  blocks$avg_sb_cap <- avg_cap_per_block
+  
+  # expand by duplicating rows according to the population of that block
+  blocks_expanded <- blocks[rep(seq_len(nrow(blocks)), pmax(blocks$pop, 1)), ]
+  
+  blocks_long <- blocks_expanded %>%
+    pivot_longer(
+      cols = c(
+        current_cap,
+        scenario2_cap,
+        scenario3_cap,
+        scenario4_cap,
+        scenario5_cap,
+        avg_sim_cap,
+        avg_sb_cap
+      ),
+      names_to = "scenario",
+      values_to = "capacity"
+    )
+  
+  blocks_long <- blocks_long %>%
+    mutate(
+      scenario = factor(
+        scenario,
+        levels = c(
+          "current_cap",
+          "scenario2_cap",
+          "scenario3_cap",
+          "scenario4_cap",
+          "scenario5_cap",
+          "avg_sim_cap",
+          "avg_sb_cap"
+        ),
+        labels = c(
+          "Current",
+          "Scenario 2",
+          "Scenario 3",
+          "Scenario 4",
+          "Scenario 5",
+          "Simulated",
+          "Shortburst"
+        )
+      )
+    )
+  
+  p_blocks <- blocks_long %>%
+    ggplot(aes(
+      x = factor(region),
+      y = capacity,
+      color = scenario
+    )) +
+    geom_boxplot(
+      position = position_dodge(width = 0.8),
+      width = 0.6,
+      fill = NA
+    ) +
+    labs(
+      x = "Region",
+      y = "Capacity Utilization Ratio",
+      color = "Capacity Utilization Ratio",
+      title = title
+    ) +
+    scale_color_discrete(
+      labels = c(
+        current_commute   = "Current",
+        scenario2_commute = "Scenario 2",
+        scenario3_commute = "Scenario 3",
+        scenario4_commute = "Scenario 4",
+        scenario5_commute = "Scenario 5",
+        avg_sim_commute   = "Simulated",
+        avg_sb_commute    = "Shortburst"
+      ),
+      name = "Capacity Utilization Ratio"
     ) +
     theme_bw()
   
