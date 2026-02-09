@@ -160,29 +160,29 @@ validate_analysis <- function(plans, map, level) {
   p_div <- plan_div %>% 
     ggplot(aes(x = plan_div)) +
     geom_histogram(bins = 40) +
-    labs(x = "VI Distance", title = "Plan Diversity") +
+    labs(x = "VI Distance", y = "Count", title = "Plan Diversity") +
     theme_bw()
   
-  p_dev <- hist(plans, plan_dev, bins = 40) + labs(title = "Population Deviation") + theme_bw()
+  p_dev <- hist(plans, plan_dev, bins = 40) + labs(title = "Population Deviation", x = "Plan Deviation", y = "Fraction of Plans") + theme_bw()
   
-  p_comp <- plot(plans, comp_polsby, geom = "boxplot") + labs(title = "Compactness: Polsby-Popper") + theme_bw()
+  p_comp <- plot(plans, comp_polsby, geom = "boxplot") + labs(title = "Compactness: Polsby-Popper", x = "Ordered Attendance Area", y = "Polsby-Popper") + theme_bw()
   
-  p_comp_frac <- hist(plans, comp_edge, bins = 40) + labs(title = "Compactness: Fraction Kept") + theme_bw()
+  p_comp_frac <- hist(plans, comp_edge, bins = 40) + labs(title = "Compactness: Fraction Kept", x = "Fraction of Edges Kept", y = "Fraction of Plans") + theme_bw()
   
   p_commute <- plot(plans, phase_commute, geom = "boxplot") + labs(title = "Phase-In Commute Disruption") + theme_bw()
   
-  p_max_commute <- plot(plans, max_commute, geom = "boxplot") + labs(title = "Maximum Commute (min)") + theme_bw()
+  p_max_commute <- plot(plans, max_commute, geom = "boxplot") + labs(title = "Maximum Commute", x = "Ordered Attendance Area", y = "Maximum Commute (min)") + theme_bw()
   
-  p_capacity <- plot(plans, capacity_util, geom = "boxplot") + labs(title = "Capacity Utilization") + theme_bw()
+  p_capacity <- plot(plans, capacity_util, geom = "boxplot") + labs(title = "Capacity Utilization", x = "Ordered Attendance Area", y = "Capacity Utilization Ratio") + theme_bw()
   
-  p_outside_zone <- hist(plans, school_outside_zone, bins = 5) + labs(title = "Schools Outside Zone") + theme_bw()
+  p_outside_zone <- hist(plans, school_outside_zone, bins = 5) + labs(title = "Schools Outside Zone", x = "Number of Schools Outside Zone", y = "Fraction of Plans") + theme_bw()
   
-  p_island <- hist(plans, attendance_islands, bins = 5) + labs(title = "Attendance Islands") + theme_bw()
+  p_island <- hist(plans, attendance_islands, bins = 5) + labs(title = "Attendance Islands", x = "Number of Attendance Islands", y = "Fraction of Plans") + theme_bw()
   
   if ("elem_split_feeders" %in% names(plans)) {
-    p_split <- hist(plans, elem_split_feeders) + labs(title = "Elementary Split Feeders") + theme_bw()
+    p_split <- hist(plans, elem_split_feeders) + labs(title = "Elementary Split Feeders", x = "Number of Split Feeders", y = "Fraction of Plans") + theme_bw()
   } else if ("middle_split_feeders" %in% names(plans)) {
-    p_split <- hist(plans, middle_split_feeders) + labs(title = "Middle Split Feeders") + theme_bw()
+    p_split <- hist(plans, middle_split_feeders) + labs(title = "Middle Split Feeders", x = "Number of Split Feeders", y = "Fraction of Plans") + theme_bw()
   } else {
     p_split <- patchwork::plot_spacer()
   }
