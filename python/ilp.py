@@ -1,11 +1,14 @@
 import pyomo.environ as pyo
-from pyomo.environ import TerminationCondition as TC
+from pyomo.opt import SolverStatus, TerminationCondition, SolutionStatus
 import csv
 import sys
 import time
+import os
 
 # command line usage:
 # py ilp.py [elem|middle|high] [1|2|3]
+
+os.makedirs("results", exist_ok=True)
 
 t0 = time.time()
 
@@ -13,24 +16,27 @@ def build_and_solve(
     V, p, delta, num_schools, num_schools_lower, schools_idx, cap, y, arcs,
     solver_name="gurobi", time_limit=3600
 ):
-    nV = len(V)
+    nV = len(V)                     # number of vertices/blocks
     I = range(num_schools)          # upper-level schools
     K = range(num_schools_lower)    # lower-level schools
 
     m = pyo.ConcreteModel()
 
     total_pop = sum(p)
+    total_cap = sum(cap)
+    cap_to_pop = total_cap / total_pop
 
     # --- Sets ---
-    m.V = pyo.Set(initialize=V)
-    m.I = pyo.Set(initialize=list(I))
-    m.K = pyo.Set(initialize=list(K))
-    m.A = pyo.Set(initialize=arcs, dimen=2)   # directed arcs (u,v)
+    m.V = pyo.Set(initialize=V)             # vertices/blocks
+    m.I = pyo.Set(initialize=list(I))       # upper-level schools
+    m.K = pyo.Set(initialize=list(K))       # lower-level schools
+    m.A = pyo.Set(initialize=arcs, dimen=2) # arcs for flow balance constraints
 
     # --- Variables ---
-    m.x = pyo.Var(m.V, m.I, domain=pyo.Binary)                 # x_{v,i}
-    m.z = pyo.Var(m.K, m.I, domain=pyo.Binary)                 # z_{k,i}
-    m.f = pyo.Var(m.I, m.A, domain=pyo.NonNegativeReals)       # f^i_{uv} >= 0
+    m.x = pyo.Var(m.V, m.I, domain=pyo.Binary)           # assignment of vertex v to school i
+    m.z = pyo.Var(m.K, m.I, domain=pyo.Binary)           # whether lower-level school k to upper-level school i is a split feeder
+    m.f = pyo.Var(m.I, m.A, domain=pyo.NonNegativeReals) # flow from u to v in school zone i
+    m.n = pyo.Var(m.I, domain=pyo.NonNegativeReals)      # number of vertices assigned to school i (for flow balance)
 
     # --- Objective ---
     def obj_rule(m):
@@ -58,30 +64,30 @@ def build_and_solve(
         return m.x[schools_idx[i], j] == 0
     m.SchoolNotOther = pyo.Constraint(m.I, m.I, rule=school_not_other_rule)
 
-    # Capacity constraint: up to 50% below capacity
+    # Enrollment must be at least 50% of capacity
     def lower_rule(m, i):
-        return (sum(p[v] * m.x[v, i] for v in m.V) / cap[i]) - 1 >= -0.5
+        return (sum(p[v] * m.x[v, i] for v in m.V) * cap_to_pop) / cap[i] - 1 >= -0.5
     m.CapLower = pyo.Constraint(m.I, rule=lower_rule)
 
-    # Capacity constraint: up to 50% above capacity
+    # Enrollment must be at most 150% of capacity
     def upper_rule(m, i):
-        return (sum(p[v] * m.x[v, i] for v in m.V) / cap[i]) - 1 <= 0.5
+        return (sum(p[v] * m.x[v, i] for v in m.V) * cap_to_pop) / cap[i] - 1 <= 0.5
     m.CapUpper = pyo.Constraint(m.I, rule=upper_rule)
 
-    # Split-feeder style constraint:
-    # 0.25 * sum_v p(v) y_{v,k} + M z_{k,i} >= sum_v p(v) x_{v,i} y_{v,k}
+    # Lower-level school split constraints
     def split_rule(m, k, i):
         if num_schools_lower == 0:
-            return pyo.Constraint.Skip  # no lower-level schools, so skip this constraint
+            return pyo.Constraint.Skip
         rhs = sum(p[v] * y[v][k] * m.x[v, i] for v in m.V)
         lhs = 0.25 * sum(p[v] * y[v][k] for v in m.V) + total_pop * m.z[k, i]
         return lhs >= rhs
     m.Split = pyo.Constraint(m.K, m.I, rule=split_rule)
 
-    # Flow conservation for connectivity (single-commodity flow per i):
-    # sum_{(u,v)} f^i_{uv} - sum_{(v,w)} f^i_{vw} = x_{v,i} - 1[v = s_i]
-    #
-    # Build incoming/outgoing arc lists for speed
+    # Zone size variable to help with flow balance rule
+    def zone_size_rule(m, i):
+        return m.n[i] == sum(m.x[v, i] for v in m.V)
+    m.ZoneSize = pyo.Constraint(m.I, rule=zone_size_rule)
+
     incoming = {v: [] for v in V}
     outgoing = {v: [] for v in V}
     for (u, v) in arcs:
@@ -89,78 +95,106 @@ def build_and_solve(
         incoming[v].append((u, v))
 
     def flow_balance_rule(m, v, i):
-        inflow = sum(m.f[i, a] for a in incoming[v])
-        outflow = sum(m.f[i, a] for a in outgoing[v])
+        inflow  = sum(m.f[i, u, v] for (u, _) in incoming[v])
+        outflow = sum(m.f[i, v, w] for (_, w) in outgoing[v])
         root = schools_idx[i]
-        n_i = sum(m.x[u, i] for u in m.V)  # zone size for school i
 
         if v == root:
-            # inflow - outflow = 1 - n_i  (since x[root,i]=1)
-            return inflow - outflow == m.x[v, i] - n_i
+            # inflow - outflow = 1 - n_i  since x[root,i] = 1 and root supplies flow to all other assigned nodes
+            return inflow - outflow == m.x[v, i] - m.n[i]
         else:
-            # each assigned non-root vertex needs net inflow of 1
+            # assigned nodes demand 1 unit
             return inflow - outflow == m.x[v, i]
     m.FlowBalance = pyo.Constraint(m.V, m.I, rule=flow_balance_rule)
 
-    # f^i_{uv} <= (|V|-1) x_{u,i}
     def flow_cap_u_rule(m, i, u, v):
-        return m.f[i, (u, v)] <= (nV - 1) * m.x[u, i]
+        return m.f[i, u, v] <= (nV - 1) * m.x[u, i]
     m.FlowCapU = pyo.Constraint(m.I, m.A, rule=flow_cap_u_rule)
 
-    # f^i_{uv} <= (|V|-1) x_{v,i}
     def flow_cap_v_rule(m, i, u, v):
-        return m.f[i, (u, v)] <= (nV - 1) * m.x[v, i]
+        return m.f[i, u, v] <= (nV - 1) * m.x[v, i]
     m.FlowCapV = pyo.Constraint(m.I, m.A, rule=flow_cap_v_rule)
 
-    print("Built model in", time.time()-t0, "sec")
+    print("Built model.")
 
     # --- Solve ---
     t1 = time.time()
     solver = pyo.SolverFactory(solver_name)
     solver.options["TimeLimit"] = time_limit
     solver.options["MIPGap"] = 0.02
-    solver.options["LogFile"] = "gurobi.log"
+    solver.options["LogFile"] = "results/gurobi.log"
 
-    result = solver.solve(m, tee=True)
-    print("Solved in", time.time()-t1, "sec")
+    solver.options["MIPFocus"] = 1      # prioritize feasibility
+    solver.options["Heuristics"] = 0.5  # default is 0.05 → much more aggressive
+    solver.options["Method"] = 1        # dual simplex (avoids barrier)
+    solver.options["Presolve"] = 1      # keep presolve, but not too aggressive
+    solver.options["Cuts"] = 1          # limit cut generation
+    solver.options["RINS"] = 20         # enable RINS early
+    solver.options["PumpPasses"] = 50   # feasibility pump (big for your case)
 
-    term = result.solver.termination_condition
-    if term not in {
-        TC.infeasible,
-        TC.unbounded,
-        TC.infeasibleOrUnbounded,
-        TC.solverFailure,
-        TC.internalSolverError,
-        TC.numericalError,
-        TC.invalidProblem
-    }:
-        # --- Extract solution ---
-        assign = {v: None for v in V}
-        for v in V:
-            # find i with x[v,i] = 1
-            for i in I:
-                if pyo.value(m.x[v, i]) > 0.5:
-                    assign[v] = i
-                    break
 
-        z_vals = {(k, i): int(round(pyo.value(m.z[k, i]))) for k in K for i in I}
-        obj_val = pyo.value(m.OBJ)
+    result = solver.solve(m, tee=True, load_solutions=False)
+    print("Solve call returned in", time.time() - t1, "sec")
 
+    tc = result.solver.termination_condition
+    status = result.solver.status
+
+    # Termination conditions that may still have a feasible incumbent
+    ACCEPTABLE_TC = {
+        TerminationCondition.optimal,
+        TerminationCondition.feasible,
+        TerminationCondition.maxTimeLimit,
+        TerminationCondition.maxIterations,
+        TerminationCondition.maxEvaluations
+    }
+
+    if tc not in ACCEPTABLE_TC:
         return {
-            "status": str(result.solver.termination_condition),
-            "objective": obj_val,
-            "assignment": assign,     # vertex -> school index i
-            "z": z_vals,              # whether k->i is a split feeder
-            "model": m,               # in case you want to inspect more
+            "status": status,
+            "has_solution": False,
+            "termination_condition": tc,
+            "objective": None,
+            "assignment": None,
+            "z": None,
+            "model": m,
         }
-    else:
+
+    # Try to load a solution
+    try:
+        m.solutions.load_from(result)
+    except Exception as e:
+        print("Solution load failed:", e)
         return {
-            "status": str(term), 
-            "objective": None, 
-            "assignment": None, 
-            "z": None, 
-            "model": m
+            "status": status,
+            "has_solution": False,
+            "termination_condition": tc,
+            "objective": None,
+            "assignment": None,
+            "z": None,
+            "model": m,
         }
+
+    # --- Extract solution ---
+    assign = {v: None for v in V}
+    for v in V:
+        for i in I:
+            xv = pyo.value(m.x[v, i])
+            if xv is not None and xv > 0.5:
+                assign[v] = i
+                break
+
+    z_vals = {(k, i): int(round(pyo.value(m.z[k, i]))) for k in K for i in I}
+    obj_val = pyo.value(m.OBJ)
+
+    return {
+        "status": status,
+        "has_solution": True,
+        "termination_condition": tc,
+        "objective": obj_val,
+        "assignment": assign,
+        "z": z_vals,
+        "model": m,
+    }
 
 args = sys.argv
 if len(sys.argv) < 3:
@@ -244,14 +278,23 @@ sol = build_and_solve(
     y=y_matrix,
     arcs=arcs,
     solver_name="gurobi",
-    time_limit=3600
+    time_limit=28800
 )
 
 print(sol["status"], sol["objective"])
-if sol["assignment"] is None:
-    raise RuntimeError(f"Solve failed: {sol['status']}")
-with open("results/"+args[1]+"_"+args[2]+".csv", "w", newline="") as f:
-    assign = sol["assignment"]  # dict: v -> i (0..num_schools-1)
-    row = [(assign[v] + 1) for v in range(len(V))]
-    writer = csv.writer(f)
-    writer.writerow(row)
+
+outbase = f"results/{args[1]}_{args[2]}"
+
+if sol["assignment"] is not None:
+    with open(outbase + ".csv", "w", newline="") as f:
+        assign = sol["assignment"]
+        if any(assign[v] is None for v in V):
+            raise RuntimeError("Incomplete assignment in solution.")
+        row = [(assign[v] + 1) for v in range(len(V))]
+        csv.writer(f).writerow(row)
+else:
+    # Always store something so you know what happened
+    with open(outbase + "_NOSOL.txt", "w") as f:
+        f.write(f"status={sol['status']}\n")
+        f.write(f"termination_condition={sol['termination_condition']}\n")
+        f.write("No feasible incumbent solution was found (Solution count 0 / time limit / abort).\n")
