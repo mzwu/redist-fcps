@@ -35,8 +35,8 @@ def build_and_solve(
     # --- Variables ---
     m.x = pyo.Var(m.V, m.I, domain=pyo.Binary)           # assignment of vertex v to school i
     m.z = pyo.Var(m.K, m.I, domain=pyo.Binary)           # whether lower-level school k to upper-level school i is a split feeder
-    m.f = pyo.Var(m.I, m.A, domain=pyo.NonNegativeReals) # flow from u to v in school zone i
-    m.n = pyo.Var(m.I, domain=pyo.NonNegativeReals)      # number of vertices assigned to school i (for flow balance)
+    m.f = pyo.Var(m.I, m.A, domain=pyo.NonNegativeReals, bounds=(0, nV - 1)) # flow from u to v in school zone i
+    m.n = pyo.Var(m.I, domain=pyo.NonNegativeReals, bounds=(1, nV))      # number of vertices assigned to school i (for flow balance)
 
     # --- Objective ---
     def obj_rule(m):
@@ -126,7 +126,7 @@ def build_and_solve(
 
     solver.options["MIPFocus"] = 1      # prioritize feasibility
     solver.options["Heuristics"] = 0.5  # default is 0.05 → much more aggressive
-    solver.options["Method"] = 1        # dual simplex (avoids barrier)
+    solver.options["Method"] = 2        # barrier?
     solver.options["Presolve"] = 1      # keep presolve, but not too aggressive
     solver.options["Cuts"] = 1          # limit cut generation
     solver.options["RINS"] = 20         # enable RINS early
