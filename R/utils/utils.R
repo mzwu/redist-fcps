@@ -423,7 +423,7 @@ capacity_improvement_heatmap <- function(plans, map, schools_idx, schools_capaci
         current_cap = (zone_pop / total_pop) * (total_capacity / zone_capacity)
       ) %>%
       ungroup()
-    title <- "Elementary School: Simulated Capacity Ratio \nImprovement Over Current"
+    title <- "Elementary School: Simulated vs. Current Capacity Ratio"
   }
   else if (level == "middle") {
     blocks <- map %>%
@@ -434,7 +434,7 @@ capacity_improvement_heatmap <- function(plans, map, schools_idx, schools_capaci
         current_cap = (zone_pop / total_pop) * (total_capacity / zone_capacity)
       ) %>%
       ungroup()
-    title <- "Middle School: Simulated Capacity Ratio \nImprovement Over Current"
+    title <- "Middle School: Simulated vs. Current Capacity Ratio"
   }
   else if (level == "high") {
     blocks <- map %>%
@@ -445,7 +445,7 @@ capacity_improvement_heatmap <- function(plans, map, schools_idx, schools_capaci
         current_cap = (zone_pop / total_pop) * (total_capacity / zone_capacity)
       ) %>%
       ungroup()
-    title <- "High School: Simulated Capacity Ratio \nImprovement Over Current"
+    title <- "High School: Simulated vs. Current Capacity Ratio"
   }
   
   # compute average commute time across simulated plans
@@ -465,11 +465,11 @@ capacity_improvement_heatmap <- function(plans, map, schools_idx, schools_capaci
   
   p_blocks <- blocks %>%
     ggplot() +
-    geom_sf(aes(fill = abs(current_cap - 1) - abs(avg_sim_cap - 1))) +
+    geom_sf(aes(fill = abs(avg_sim_cap - 1) - abs(current_cap - 1))) +
     labs(
       title = title
     ) +
-    scale_fill_viridis_c("Current Capacity \nUtilization Ratio \nDistance From 1 \n- Average Simulated") +
+    scale_fill_viridis_c("Average Simulated - \nCurrent Capacity \nUtilization Ratio \nDistance From 1") +
     theme_bw()
   
   p_blocks
@@ -1028,6 +1028,12 @@ capacity_boxplots <- function(plans, plans_sb, map, schools_idx, schools_capacit
       position = position_dodge(width = 0.8),
       width = 0.6,
       fill = NA
+    ) +
+    geom_hline(
+      yintercept = 1,
+      color = "red",
+      linetype = "22",   # shorter dashes
+      linewidth = 0.8
     ) +
     labs(
       x = "Region",
