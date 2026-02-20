@@ -117,8 +117,8 @@ elem_cap_boxplots <- capacity_boxplots(
 ggsave(
   filename = here("figures/elem_cap_boxplots.png"),
   plot = elem_cap_boxplots,
-  width = 9,
-  height = 6,
+  width = 10,
+  height = 4,
   units = "in",
   dpi = 300
 )
@@ -279,8 +279,8 @@ middle_cap_boxplots <- capacity_boxplots(
 ggsave(
   filename = here("figures/middle_cap_boxplots.png"),
   plot = middle_cap_boxplots,
-  width = 9,
-  height = 6,
+  width = 10,
+  height = 4,
   units = "in",
   dpi = 300
 )
@@ -441,8 +441,8 @@ high_cap_boxplots <- capacity_boxplots(
 ggsave(
   filename = here("figures/high_cap_boxplots.png"),
   plot = high_cap_boxplots,
-  width = 9,
-  height = 6,
+  width = 10,
+  height = 4,
   units = "in",
   dpi = 300
 )
