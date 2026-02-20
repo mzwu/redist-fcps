@@ -331,9 +331,9 @@ current_commute_heatmap <- function(plans, map, schools_idx, commute_times, leve
   p_blocks <- blocks %>%
     ggplot() +
     geom_sf(aes(fill = current_commute / 60)) +
-    labs(title = title) +
+    # labs(title = title) +
     scale_fill_viridis_c("Current Commute \n(min)") +
-    theme_bw()
+    theme_void()
   
   p_blocks
 }
@@ -389,11 +389,11 @@ projected_average_heatmap <- function(plans, map, schools_idx, commute_times, le
   p_blocks <- blocks %>%
     ggplot() +
     geom_sf(aes(fill = (avg_sim_commute - current_commute) / 60)) +
-    labs(
-      title = title
-    ) +
+    # labs(
+    #   title = title
+    # ) +
     scale_fill_viridis_c("Average Simulated - \nCurrent Commute \n(min)") +
-    theme_bw()
+    theme_void()
   
   p_blocks
 }
@@ -466,11 +466,11 @@ capacity_improvement_heatmap <- function(plans, map, schools_idx, schools_capaci
   p_blocks <- blocks %>%
     ggplot() +
     geom_sf(aes(fill = abs(avg_sim_cap - 1) - abs(current_cap - 1))) +
-    labs(
-      title = title
-    ) +
+    # labs(
+    #   title = title
+    # ) +
     scale_fill_viridis_c("Average Simulated - \nCurrent Capacity \nUtilization Ratio \nDistance From 1") +
-    theme_bw()
+    theme_void()
   
   p_blocks
 }
@@ -586,11 +586,11 @@ split_feeder_heatmap <- function(plans, map, level) {
   p_blocks <- blocks %>%
     ggplot() +
     geom_sf(aes(fill = avg_split_feeder)) +
-    labs(
-      title = title
-    ) +
+    # labs(
+    #   title = title
+    # ) +
     scale_fill_viridis_c("Average Simulated \nSplit Feeder") +
-    theme_bw()
+    theme_void()
   
   p_blocks
 }
@@ -634,11 +634,11 @@ split_feeder_current <- function(map, level) {
   p_blocks <- blocks %>%
     ggplot() +
     geom_sf(aes(fill = current_split_feeder)) +
-    labs(
-      title = title
-    ) +
+    # labs(
+    #   title = title
+    # ) +
     scale_fill_viridis_d("Current Split \nFeeder Status") +
-    theme_bw()
+    theme_void()
   
   p_blocks
 }
@@ -682,11 +682,11 @@ split_feeder_proposed <- function(map, level) {
   p_blocks <- blocks %>%
     ggplot() +
     geom_sf(aes(fill = scenario5_split_feeder)) +
-    labs(
-      title = title
-    ) +
+    # labs(
+    #   title = title
+    # ) +
     scale_fill_viridis_d("Proposed Split \nFeeder Status") +
-    theme_bw()
+    theme_void()
   
   p_blocks
 }
@@ -821,7 +821,7 @@ comparison_boxplots <- function(plans, plans_sb, map, schools_idx, commute_times
       x = "Region",
       y = "Commute Time (min)",
       color = "Commute Times",
-      title = title
+      # title = title
     ) +
     scale_color_discrete(
       labels = c(
@@ -1039,7 +1039,7 @@ capacity_boxplots <- function(plans, plans_sb, map, schools_idx, schools_capacit
       x = "Region",
       y = "Capacity Utilization Ratio",
       color = "Capacity Utilization Ratio",
-      title = title
+      # title = title
     ) +
     scale_color_discrete(
       labels = c(

@@ -2,15 +2,14 @@ region_map <- map %>%
   ggplot(aes(fill = factor(region))) +
   geom_sf() +
   labs(
-    title = "Pyramid Regions", 
     fill = "Region"
   ) +
-  theme_bw()
+  theme_void()
 ggsave(
   filename = here("figures/region_map.png"),
   plot = region_map,
   width = 6,
-  height = 8,
+  height = 6,
   units = "in",
   dpi = 300
 )
@@ -30,7 +29,7 @@ ggsave(
   filename = here("figures/elem_commute_heatmap.png"),
   plot = elem_commute_heatmap,
   width = 6,
-  height = 8,
+  height = 5,
   units = "in",
   dpi = 300
 )
@@ -46,7 +45,7 @@ ggsave(
   filename = here("figures/elem_cap_heatmap.png"),
   plot = elem_cap_heatmap,
   width = 6,
-  height = 8,
+  height = 5,
   units = "in",
   dpi = 300
 )
@@ -96,7 +95,7 @@ ggsave(
   filename = here("figures/middle_commute_heatmap.png"),
   plot = middle_commute_heatmap,
   width = 6,
-  height = 8,
+  height = 5,
   units = "in",
   dpi = 300
 )
@@ -112,7 +111,7 @@ ggsave(
   filename = here("figures/middle_commute_current.png"),
   plot = middle_commute_current,
   width = 6,
-  height = 8,
+  height = 5,
   units = "in",
   dpi = 300
 )
@@ -128,7 +127,7 @@ ggsave(
   filename = here("figures/middle_cap_heatmap.png"),
   plot = middle_cap_heatmap,
   width = 6,
-  height = 8,
+  height = 5,
   units = "in",
   dpi = 300
 )
@@ -141,7 +140,7 @@ ggsave(
   filename = here("figures/middle_split_feeder_heatmap.png"),
   plot = middle_split_feeder_heatmap,
   width = 6,
-  height = 6,
+  height = 5,
   units = "in",
   dpi = 300
 )
@@ -153,7 +152,7 @@ ggsave(
   filename = here("figures/middle_split_feeder_current.png"),
   plot = middle_split_feeder_current,
   width = 6,
-  height = 6,
+  height = 5,
   units = "in",
   dpi = 300
 )
@@ -165,7 +164,7 @@ ggsave(
   filename = here("figures/middle_split_feeder_proposed.png"),
   plot = middle_split_feeder_proposed,
   width = 6,
-  height = 6,
+  height = 5,
   units = "in",
   dpi = 300
 )
@@ -215,7 +214,7 @@ ggsave(
   filename = here("figures/high_commute_heatmap.png"),
   plot = high_commute_heatmap,
   width = 6,
-  height = 8,
+  height = 5,
   units = "in",
   dpi = 300
 )
@@ -231,7 +230,7 @@ ggsave(
   filename = here("figures/high_commute_current.png"),
   plot = high_commute_current,
   width = 6,
-  height = 8,
+  height = 5,
   units = "in",
   dpi = 300
 )
@@ -247,7 +246,7 @@ ggsave(
   filename = here("figures/high_cap_heatmap.png"),
   plot = high_cap_heatmap,
   width = 6,
-  height = 8,
+  height = 5,
   units = "in",
   dpi = 300
 )
@@ -260,7 +259,7 @@ ggsave(
   filename = here("figures/high_split_feeder_heatmap.png"),
   plot = high_split_feeder_heatmap,
   width = 6,
-  height = 6,
+  height = 5,
   units = "in",
   dpi = 300
 )
@@ -272,7 +271,7 @@ ggsave(
   filename = here("figures/high_split_feeder_current.png"),
   plot = high_split_feeder_current,
   width = 6,
-  height = 6,
+  height = 5,
   units = "in",
   dpi = 300
 )
@@ -284,7 +283,7 @@ ggsave(
   filename = here("figures/high_split_feeder_proposed.png"),
   plot = high_split_feeder_proposed,
   width = 6,
-  height = 6,
+  height = 5,
   units = "in",
   dpi = 300
 )
