@@ -18,6 +18,49 @@ ggsave(
 
 plans <- read_rds(here("data-raw/elem/plans/plans_es_mcmc_com1_inc12_cap10_pop0.66.rds"))
 
+plans <- add_summary_stats(
+  plans, map, 
+  current = map$elem_current, 
+  schools = schools_idx, 
+  commute_times = commute_times, 
+  capacity = schools_capacity,
+  level = "elem"
+)
+
+elem_polsby <- plans %>%
+  ggplot(aes(x = comp_polsby, y = max_commute)) +
+  geom_point(size=1) +
+  labs(
+    x = "Compactness: Polsby-Popper",
+    y = "Maximum Commute (min)"
+  ) +
+  theme_bw()
+ggsave(
+  filename = here("figures/elem_polsby.png"),
+  plot = elem_polsby,
+  width = 6,
+  height = 5,
+  units = "in",
+  dpi = 300
+)
+
+elem_edge <- plans %>%
+  ggplot(aes(x = comp_edge, y = max_commute)) +
+  geom_point(size=1) +
+  labs(
+    x = "Compactness: Fraction of Edges Kept",
+    y = "Maximum Commute (min)"
+  ) +
+  theme_bw()
+ggsave(
+  filename = here("figures/elem_edge.png"),
+  plot = elem_edge,
+  width = 6,
+  height = 5,
+  units = "in",
+  dpi = 300
+)
+
 elem_commute_heatmap <- projected_average_heatmap(
   plans, 
   map, 
@@ -83,6 +126,49 @@ ggsave(
 # LOAD MIDDLE MAP
 
 plans <- read_rds(here("data-raw/middle/plans/plans_ms_com1_inc11_split0_cap1_pop0.2.rds"))
+
+plans <- add_summary_stats(
+  plans, map, 
+  current = map$middle_current, 
+  schools = schools_idx, 
+  commute_times = commute_times, 
+  capacity = schools_capacity,
+  level = "middle"
+)
+
+middle_polsby <- plans %>%
+  ggplot(aes(x = comp_polsby, y = max_commute)) +
+  geom_point(size=1) +
+  labs(
+    x = "Compactness: Polsby-Popper",
+    y = "Maximum Commute (min)"
+  ) +
+  theme_bw()
+ggsave(
+  filename = here("figures/middle_polsby.png"),
+  plot = middle_polsby,
+  width = 6,
+  height = 5,
+  units = "in",
+  dpi = 300
+)
+
+middle_edge <- plans %>%
+  ggplot(aes(x = comp_edge, y = max_commute)) +
+  geom_point(size=1) +
+  labs(
+    x = "Compactness: Fraction of Edges Kept",
+    y = "Maximum Commute (min)"
+  ) +
+  theme_bw()
+ggsave(
+  filename = here("figures/middle_edge.png"),
+  plot = middle_edge,
+  width = 6,
+  height = 5,
+  units = "in",
+  dpi = 300
+)
 
 middle_commute_heatmap <- projected_average_heatmap(
   plans, 
@@ -202,6 +288,49 @@ ggsave(
 # LOAD HIGH MAP
 
 plans <- read_rds(here("data-raw/high/plans/plans_hs_com0_inc15_split4_cap0_pop0.25.rds"))
+
+plans <- add_summary_stats(
+  plans, map, 
+  current = map$high_current, 
+  schools = schools_idx, 
+  commute_times = commute_times, 
+  capacity = schools_capacity,
+  level = "high"
+)
+
+high_polsby <- plans %>%
+  ggplot(aes(x = comp_polsby, y = max_commute)) +
+  geom_point(size=1) +
+  labs(
+    x = "Compactness: Polsby-Popper",
+    y = "Maximum Commute (min)"
+  ) +
+  theme_bw()
+ggsave(
+  filename = here("figures/high_polsby.png"),
+  plot = high_polsby,
+  width = 6,
+  height = 5,
+  units = "in",
+  dpi = 300
+)
+
+high_edge <- plans %>%
+  ggplot(aes(x = comp_edge, y = max_commute)) +
+  geom_point(size=1) +
+  labs(
+    x = "Compactness: Fraction of Edges Kept",
+    y = "Maximum Commute (min)"
+  ) +
+  theme_bw()
+ggsave(
+  filename = here("figures/high_edge.png"),
+  plot = high_edge,
+  width = 6,
+  height = 5,
+  units = "in",
+  dpi = 300
+)
 
 high_commute_heatmap <- projected_average_heatmap(
   plans, 
