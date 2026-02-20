@@ -103,8 +103,8 @@ elem_commute_boxplots <- comparison_boxplots(
 ggsave(
   filename = here("figures/elem_commute_boxplots.png"),
   plot = elem_commute_boxplots,
-  width = 9,
-  height = 6,
+  width = 10,
+  height = 4,
   units = "in",
   dpi = 300
 )
@@ -265,8 +265,8 @@ middle_commute_boxplots <- comparison_boxplots(
 ggsave(
   filename = here("figures/middle_commute_boxplots.png"),
   plot = middle_commute_boxplots,
-  width = 9,
-  height = 6,
+  width = 10,
+  height = 4,
   units = "in",
   dpi = 300
 )
@@ -427,8 +427,8 @@ high_commute_boxplots <- comparison_boxplots(
 ggsave(
   filename = here("figures/high_commute_boxplots.png"),
   plot = high_commute_boxplots,
-  width = 9,
-  height = 6,
+  width = 10,
+  height = 4,
   units = "in",
   dpi = 300
 )
