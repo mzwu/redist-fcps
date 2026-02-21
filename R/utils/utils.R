@@ -823,7 +823,16 @@ comparison_boxplots <- function(plans, plans_sb, map, schools_idx, commute_times
       color = "Commute Times",
       # title = title
     ) +
-    scale_color_discrete(
+    scale_color_manual(
+      values = c(
+        "Current"   = "#F8766D",
+        "Scenario 2" = "#A3A500",
+        "Scenario 3" = "#00BF7D",
+        "Scenario 4" = "#00B0F6",
+        "Scenario 5" = "#E76BF3",
+        "Simulated"   = "#9d6bf3",
+        "Shortburst"    = "#6b8bf3"
+      ),
       labels = c(
         current_commute   = "Current",
         scenario2_commute = "Scenario 2",
@@ -1041,7 +1050,16 @@ capacity_boxplots <- function(plans, plans_sb, map, schools_idx, schools_capacit
       color = "Capacity Utilization Ratio",
       # title = title
     ) +
-    scale_color_discrete(
+    scale_color_manual(
+      values = c(
+        "Current"   = "#F8766D",
+        "Scenario 2" = "#A3A500",
+        "Scenario 3" = "#00BF7D",
+        "Scenario 4" = "#00B0F6",
+        "Scenario 5" = "#E76BF3",
+        "Simulated"   = "#9d6bf3",
+        "Shortburst"    = "#6b8bf3"
+      ),
       labels = c(
         current_commute   = "Current",
         scenario2_commute = "Scenario 2",
