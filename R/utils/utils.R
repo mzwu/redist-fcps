@@ -781,11 +781,11 @@ comparison_boxplots <- function(plans, plans_sb, map, schools_idx, commute_times
   blocks_long <- blocks_expanded %>%
     pivot_longer(
       cols = c(
-        current_commute,
         scenario2_commute,
         scenario3_commute,
         scenario4_commute,
         scenario5_commute,
+        current_commute,
         avg_sim_commute,
         avg_sb_commute
       ),
@@ -798,20 +798,20 @@ comparison_boxplots <- function(plans, plans_sb, map, schools_idx, commute_times
       scenario = factor(
         scenario,
         levels = c(
-          "current_commute",
           "scenario2_commute",
           "scenario3_commute",
           "scenario4_commute",
           "scenario5_commute",
+          "current_commute",
           "avg_sim_commute",
           "avg_sb_commute"
         ),
         labels = c(
-          "Current",
           "Scenario 2",
           "Scenario 3",
           "Scenario 4",
           "Scenario 5",
+          "Current",
           "Simulated",
           "Shortburst"
         )
@@ -837,20 +837,20 @@ comparison_boxplots <- function(plans, plans_sb, map, schools_idx, commute_times
     ) +
     scale_color_manual(
       values = c(
-        "Current"   = "#F8766D",
-        "Scenario 2" = "#A3A500",
-        "Scenario 3" = "#00BF7D",
-        "Scenario 4" = "#00B0F6",
-        "Scenario 5" = "#E76BF3",
+        "Scenario 2" = "#F8766D",
+        "Scenario 3" = "#A3A500",
+        "Scenario 4" = "#00BF7D",
+        "Scenario 5" = "#00B0F6",
+        "Current"   = "#E76BF3",
         "Simulated"   = "#9d6bf3",
         "Shortburst"    = "#6b8bf3"
       ),
       labels = c(
-        current_commute   = "Current",
         scenario2_commute = "Scenario 2",
         scenario3_commute = "Scenario 3",
         scenario4_commute = "Scenario 4",
         scenario5_commute = "Scenario 5",
+        current_commute   = "Current",
         avg_sim_commute   = "Simulated",
         avg_sb_commute    = "Shortburst"
       ),
@@ -1002,11 +1002,11 @@ capacity_boxplots <- function(plans, plans_sb, map, schools_idx, schools_capacit
   blocks_long <- blocks_expanded %>%
     pivot_longer(
       cols = c(
-        current_cap,
         scenario2_cap,
         scenario3_cap,
         scenario4_cap,
         scenario5_cap,
+        current_cap,
         avg_sim_cap,
         avg_sb_cap
       ),
@@ -1019,20 +1019,20 @@ capacity_boxplots <- function(plans, plans_sb, map, schools_idx, schools_capacit
       scenario = factor(
         scenario,
         levels = c(
-          "current_cap",
           "scenario2_cap",
           "scenario3_cap",
           "scenario4_cap",
           "scenario5_cap",
+          "current_cap",
           "avg_sim_cap",
           "avg_sb_cap"
         ),
         labels = c(
-          "Current",
           "Scenario 2",
           "Scenario 3",
           "Scenario 4",
           "Scenario 5",
+          "Current",
           "Simulated",
           "Shortburst"
         )
@@ -1064,20 +1064,20 @@ capacity_boxplots <- function(plans, plans_sb, map, schools_idx, schools_capacit
     ) +
     scale_color_manual(
       values = c(
-        "Current"   = "#F8766D",
-        "Scenario 2" = "#A3A500",
-        "Scenario 3" = "#00BF7D",
-        "Scenario 4" = "#00B0F6",
-        "Scenario 5" = "#E76BF3",
+        "Scenario 2" = "#F8766D",
+        "Scenario 3" = "#A3A500",
+        "Scenario 4" = "#00BF7D",
+        "Scenario 5" = "#00B0F6",
+        "Current"   = "#E76BF3",
         "Simulated"   = "#9d6bf3",
         "Shortburst"    = "#6b8bf3"
       ),
       labels = c(
-        current_commute   = "Current",
         scenario2_commute = "Scenario 2",
         scenario3_commute = "Scenario 3",
         scenario4_commute = "Scenario 4",
         scenario5_commute = "Scenario 5",
+        current_commute   = "Current",
         avg_sim_commute   = "Simulated",
         avg_sb_commute    = "Shortburst"
       ),
