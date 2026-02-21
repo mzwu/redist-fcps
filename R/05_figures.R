@@ -27,6 +27,15 @@ plans <- add_summary_stats(
   level = "elem"
 )
 
+plans <- plans %>%
+  mutate(draw = recode(draw,
+                       elem_scenario2 = "Scenario 2",
+                       elem_scenario3 = "Scenario 3",
+                       elem_scenario4 = "Scenario 4",
+                       elem_scenario5 = "Scenario 5",
+                       elem_current = "Current"
+  ))
+
 elem_comp <- plot(plans, comp_polsby, geom = "boxplot") + 
   labs(x = "Ordered Attendance Area", y = "Polsby-Popper") + 
   theme_bw() +
@@ -165,6 +174,15 @@ plans <- add_summary_stats(
   capacity = schools_capacity,
   level = "middle"
 )
+
+plans <- plans %>%
+  mutate(draw = recode(draw,
+                       middle_scenario2 = "Scenario 2",
+                       middle_scenario3 = "Scenario 3",
+                       middle_scenario4 = "Scenario 4",
+                       middle_scenario5 = "Scenario 5",
+                       middle_current = "Current"
+  ))
 
 middle_comp <- plot(plans, comp_polsby, geom = "boxplot") + 
   labs(x = "Ordered Attendance Area", y = "Polsby-Popper") + 
@@ -351,6 +369,15 @@ plans <- add_summary_stats(
   capacity = schools_capacity,
   level = "high"
 )
+
+plans <- plans %>%
+  mutate(draw = recode(draw,
+                       high_scenario2 = "Scenario 2",
+                       high_scenario3 = "Scenario 3",
+                       high_scenario4 = "Scenario 4",
+                       high_scenario5 = "Scenario 5",
+                       high_current = "Current"
+  ))
 
 high_comp <- plot(plans, comp_polsby, geom = "boxplot") + 
   labs(x = "Ordered Attendance Area", y = "Polsby-Popper") + 
