@@ -392,7 +392,13 @@ projected_average_heatmap <- function(plans, map, schools_idx, commute_times, le
     # labs(
     #   title = title
     # ) +
-    scale_fill_viridis_c("Average Simulated - \nCurrent Commute \n(min)") +
+    scale_fill_gradient2(
+      low = "#0072B2",   # low end
+      mid = "white",     # middle
+      high = "#E69F00",  # high end
+      midpoint = 0,
+      name = "Average Simulated - \nCurrent Commute \n(min)"
+    ) +
     theme_void()
   
   p_blocks
@@ -469,7 +475,13 @@ capacity_improvement_heatmap <- function(plans, map, schools_idx, schools_capaci
     # labs(
     #   title = title
     # ) +
-    scale_fill_viridis_c("Average Simulated - \nCurrent Capacity \nUtilization Ratio \nDistance From 1") +
+    scale_fill_gradient2(
+      low = "#0072B2",   # low end
+      mid = "white",     # middle
+      high = "#E69F00",  # high end
+      midpoint = 0,
+      name = "Average Simulated - \nCurrent Capacity \nUtilization Ratio \nDistance From 1"
+    ) +
     theme_void()
   
   p_blocks
