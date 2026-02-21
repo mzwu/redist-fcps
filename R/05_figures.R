@@ -4,6 +4,7 @@ region_map <- map %>%
   labs(
     fill = "Region"
   ) +
+  scale_fill_brewer(palette = "Accent") +
   theme_void()
 ggsave(
   filename = here("figures/region_map.png"),
