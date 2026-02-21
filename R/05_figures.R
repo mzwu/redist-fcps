@@ -27,6 +27,36 @@ plans <- add_summary_stats(
   level = "elem"
 )
 
+elem_comp <- plot(plans, comp_polsby, geom = "boxplot") + 
+  labs(x = "Ordered Attendance Area", y = "Polsby-Popper") + 
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(size = 4, angle = 90)
+  )
+ggsave(
+  filename = here("figures/elem_comp.png"),
+  plot = elem_comp,
+  width = 10,
+  height = 4,
+  units = "in",
+  dpi = 300
+)
+
+elem_max_commute <- plot(plans, max_commute, geom = "boxplot") + 
+  labs(x = "Ordered Attendance Area", y = "Maximum Commute (min)") + 
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(size = 4, angle = 90)
+  )
+ggsave(
+  filename = here("figures/elem_max_commute.png"),
+  plot = elem_max_commute,
+  width = 10,
+  height = 4,
+  units = "in",
+  dpi = 300
+)
+
 elem_polsby <- plans %>%
   ggplot(aes(x = comp_polsby, y = max_commute)) +
   geom_point(size=1) +
@@ -134,6 +164,30 @@ plans <- add_summary_stats(
   commute_times = commute_times, 
   capacity = schools_capacity,
   level = "middle"
+)
+
+middle_comp <- plot(plans, comp_polsby, geom = "boxplot") + 
+  labs(x = "Ordered Attendance Area", y = "Polsby-Popper") + 
+  theme_bw()
+ggsave(
+  filename = here("figures/middle_comp.png"),
+  plot = middle_comp,
+  width = 10,
+  height = 4,
+  units = "in",
+  dpi = 300
+)
+
+middle_max_commute <- plot(plans, max_commute, geom = "boxplot") + 
+  labs(x = "Ordered Attendance Area", y = "Maximum Commute (min)") + 
+  theme_bw()
+ggsave(
+  filename = here("figures/middle_max_commute.png"),
+  plot = middle_max_commute,
+  width = 10,
+  height = 4,
+  units = "in",
+  dpi = 300
 )
 
 middle_polsby <- plans %>%
@@ -296,6 +350,30 @@ plans <- add_summary_stats(
   commute_times = commute_times, 
   capacity = schools_capacity,
   level = "high"
+)
+
+high_comp <- plot(plans, comp_polsby, geom = "boxplot") + 
+  labs(x = "Ordered Attendance Area", y = "Polsby-Popper") + 
+  theme_bw()
+ggsave(
+  filename = here("figures/high_comp.png"),
+  plot = high_comp,
+  width = 10,
+  height = 4,
+  units = "in",
+  dpi = 300
+)
+
+high_max_commute <- plot(plans, max_commute, geom = "boxplot") + 
+  labs(x = "Ordered Attendance Area", y = "Maximum Commute (min)") + 
+  theme_bw()
+ggsave(
+  filename = here("figures/high_max_commute.png"),
+  plot = high_max_commute,
+  width = 10,
+  height = 4,
+  units = "in",
+  dpi = 300
 )
 
 high_polsby <- plans %>%
