@@ -1,204 +1,105 @@
-import pyomo.environ as pyo
-from pyomo.opt import SolverStatus, TerminationCondition, SolutionStatus
+# import pyomo.environ as pyo
+# from pyomo.opt import SolverStatus, TerminationCondition, SolutionStatus
+import gurobipy as gp
+from gurobipy import GRB
+import networkx as nx
+from gerrychain import Graph
 import csv
 import sys
 import time
 import os
 
 # command line usage:
-# py ilp.py [elem|middle|high] [1|2|3]
+# py ilp.py [elem|middle|high] [1|2|3] [time_limit]
 
 os.makedirs("results", exist_ok=True)
 
 t0 = time.time()
 
 def build_and_solve(
-    V, p, delta, num_schools, num_schools_lower, schools_idx, cap, y, arcs,
-    solver_name="gurobi", time_limit=3600
+    G, delta, num_schools, num_schools_lower, schools_idx, cap, feeder, time_limit=3600
 ):
-    nV = len(V)                     # number of vertices/blocks
+    nV = G.number_of_nodes()        # number of blocks/vertices
     I = range(num_schools)          # upper-level schools
     K = range(num_schools_lower)    # lower-level schools
 
-    m = pyo.ConcreteModel()
+    m = gp.Model()
+    m.Params.TimeLimit = time_limit
 
-    total_pop = sum(p)
+    total_pop = sum(G.nodes[node]['pop'] for node in G.nodes)
     total_cap = sum(cap)
     cap_to_pop = total_cap / total_pop
 
-    # --- Sets ---
-    m.V = pyo.Set(initialize=V)             # vertices/blocks
-    m.I = pyo.Set(initialize=list(I))       # upper-level schools
-    m.K = pyo.Set(initialize=list(K))       # lower-level schools
-    m.A = pyo.Set(initialize=arcs, dimen=2) # arcs for flow balance constraints
-
     # --- Variables ---
-    m.x = pyo.Var(m.V, m.I, domain=pyo.Binary)           # assignment of vertex v to school i
-    m.z = pyo.Var(m.K, m.I, domain=pyo.Binary)           # whether lower-level school k to upper-level school i is a split feeder
-    m.f = pyo.Var(m.I, m.A, domain=pyo.NonNegativeReals, bounds=(0, nV - 1)) # flow from u to v in school zone i
-    m.n = pyo.Var(m.I, domain=pyo.NonNegativeReals, bounds=(1, nV))      # number of vertices assigned to school i (for flow balance)
+    x = m.addVars(G.nodes, I, vtype=GRB.BINARY)    # x[v,i] equals one when block v is assigned to attendance area i
+    y = m.addVars(G.edges, vtype=GRB.BINARY)       # y[u,v] equals one when edge {u,v} is cut
+    z = m.addVars(K, I, vtype=GRB.BINARY)          # z[k,i] equals one when lower-level school k to upper-level school i is a split feeder
+    r = m.addVars(G.nodes, I, vtype=GRB.BINARY)    # r[v,i] equals one if block v is the "root" of district i
+    DG = nx.DiGraph(G) # directed version of G
+    f = m.addVars(DG.edges, vtype=GRB.CONTINUOUS)  # f[u,v] = amount of flow sent across arc (u,v)
 
     # --- Objective ---
-    def obj_rule(m):
-        commute = sum(p[v] * delta[v][i] * m.x[v, i] for v in m.V for i in m.I)
-        split = sum(m.z[k, i] for k in m.K for i in m.I)
-        return commute + split
-    m.OBJ = pyo.Objective(rule=obj_rule, sense=pyo.minimize)
+    commute = gp.quicksum(G.nodes[v]["pop"] * delta[v][i] * x[v, i] for v in G.nodes for i in I)
+    split = gp.quicksum(z[k, i] for k in K for i in I) if num_schools_lower > 0 else 0
+    m.setObjective(commute + split, GRB.MINIMIZE)
 
     # --- Constraints ---
-
-    # Each vertex assigned to exactly one school zone:  sum_i x_{v,i} = 1 for all v
-    def assign_one_rule(m, v):
-        return sum(m.x[v, i] for i in m.I) == 1
-    m.AssignOne = pyo.Constraint(m.V, rule=assign_one_rule)
-
-    # School node s_i must be assigned to itself: x_{s_i,i} = 1 for all i
-    def school_self_rule(m, i):
-        return m.x[schools_idx[i], i] == 1
-    m.SchoolSelf = pyo.Constraint(m.I, rule=school_self_rule)
-
-    # School node s_i cannot be assigned to other j != i: x_{s_i,j} = 0
-    def school_not_other_rule(m, i, j):
-        if i == j:
-            return pyo.Constraint.Skip
-        return m.x[schools_idx[i], j] == 0
-    m.SchoolNotOther = pyo.Constraint(m.I, m.I, rule=school_not_other_rule)
-
+    # Each vertex assigned to exactly 1 attendance area
+    m.addConstrs(gp.quicksum(x[v,i] for i in I) == 1 for v in G.nodes)
+    
+    # School node s_i must be assigned to itself
+    m.addConstrs(x[schools_idx[i], i] == 1 for i in I)
+    
+    # School node s_i cannot be assigned to another j
+    m.addConstrs(x[schools_idx[i], j] == 0 for i in I for j in I if i != j)
+    
     # Enrollment must be at least 50% of capacity
-    def lower_rule(m, i):
-        return (sum(p[v] * m.x[v, i] for v in m.V) * cap_to_pop) / cap[i] - 1 >= -0.5
-    m.CapLower = pyo.Constraint(m.I, rule=lower_rule)
-
+    m.addConstrs(gp.quicksum(G.nodes[v]["pop"] * x[v,i] for v in G.nodes) * cap_to_pop / cap[i] - 1 >= -0.5 for i in I)
+    
     # Enrollment must be at most 150% of capacity
-    def upper_rule(m, i):
-        return (sum(p[v] * m.x[v, i] for v in m.V) * cap_to_pop) / cap[i] - 1 <= 0.5
-    m.CapUpper = pyo.Constraint(m.I, rule=upper_rule)
-
+    m.addConstrs(gp.quicksum(G.nodes[v]["pop"] * x[v,i] for v in G.nodes) * cap_to_pop / cap[i] - 1 <= 0.5 for i in I)
+    
     # Lower-level school split constraints
-    def split_rule(m, k, i):
-        if num_schools_lower == 0:
-            return pyo.Constraint.Skip
-        rhs = sum(p[v] * y[v][k] * m.x[v, i] for v in m.V)
-        lhs = 0.25 * sum(p[v] * y[v][k] for v in m.V) + total_pop * m.z[k, i]
-        return lhs >= rhs
-    m.Split = pyo.Constraint(m.K, m.I, rule=split_rule)
+    m.addConstrs(gp.quicksum(G.nodes[v]["pop"] * feeder[v][k] * x[v,i] for v in G.nodes) <= 0.25 * gp.quicksum(G.nodes[v]["pop"] * feeder[v][k] for v in G.nodes) + total_pop * z[k,i] for k in K for i in I)
 
-    # Zone size variable to help with flow balance rule
-    def zone_size_rule(m, i):
-        return m.n[i] == sum(m.x[v, i] for v in m.V)
-    m.ZoneSize = pyo.Constraint(m.I, rule=zone_size_rule)
+    # Edge {u,v} is cut if u is assigned to district i but v is not
+    m.addConstrs(x[u,i] - x[v,i] <= y[u,v] for u,v in G.edges for i in I)
 
-    incoming = {v: [] for v in V}
-    outgoing = {v: [] for v in V}
-    for (u, v) in arcs:
-        outgoing[u].append((u, v))
-        incoming[v].append((u, v))
-
-    def flow_balance_rule(m, v, i):
-        inflow  = sum(m.f[i, u, v] for (u, _) in incoming[v])
-        outflow = sum(m.f[i, v, w] for (_, w) in outgoing[v])
-        root = schools_idx[i]
-
-        if v == root:
-            # inflow - outflow = 1 - n_i  since x[root,i] = 1 and root supplies flow to all other assigned nodes
-            return inflow - outflow == m.x[v, i] - m.n[i]
-        else:
-            # assigned nodes demand 1 unit
-            return inflow - outflow == m.x[v, i]
-    m.FlowBalance = pyo.Constraint(m.V, m.I, rule=flow_balance_rule)
-
-    def flow_cap_u_rule(m, i, u, v):
-        return m.f[i, u, v] <= (nV - 1) * m.x[u, i]
-    m.FlowCapU = pyo.Constraint(m.I, m.A, rule=flow_cap_u_rule)
-
-    def flow_cap_v_rule(m, i, u, v):
-        return m.f[i, u, v] <= (nV - 1) * m.x[v, i]
-    m.FlowCapV = pyo.Constraint(m.I, m.A, rule=flow_cap_v_rule)
+    # Flow constraints
+    M = G.number_of_nodes() - len(I) + 1
+    # Each district should have 1 root
+    m.addConstrs(gp.quicksum(r[v,i] for v in DG.nodes) == 1 for i in I)
+    # If node v is not assigned to attendance area i, then it cannot be its root
+    m.addConstrs(r[v,i] <= x[v,i] for v in DG.nodes for i in I)
+    # If not a root, consume some flow
+    # If a root, only send out some flow
+    m.addConstrs(gp.quicksum(f[u,v] - f[v,u] for u in DG.neighbors(v)) >= 1 - M * gp.quicksum(r[v,i] for i in I) for v in G.nodes)
+    # Do not send flow across cut edges
+    m.addConstrs(f[u,v] + f[v,u] <= M * (1 - y[u,v]) for (u,v) in G.edges)
 
     print("Built model.")
 
     # --- Solve ---
-    t1 = time.time()
-    solver = pyo.SolverFactory(solver_name)
-    solver.options["TimeLimit"] = time_limit
-    solver.options["MIPGap"] = 0.02
-    solver.options["LogFile"] = "results/gurobi.log"
+    m.update()
+    m.optimize()
 
-    solver.options["MIPFocus"] = 1      # prioritize feasibility
-    solver.options["Heuristics"] = 0.5  # default is 0.05 → much more aggressive
-    solver.options["Method"] = 2        # barrier?
-    solver.options["Presolve"] = 1      # keep presolve, but not too aggressive
-    solver.options["Cuts"] = 1          # limit cut generation
-    solver.options["RINS"] = 20         # enable RINS early
-    solver.options["PumpPasses"] = 50   # feasibility pump (big for your case)
-
-
-    result = solver.solve(m, tee=True, load_solutions=False)
-    print("Solve call returned in", time.time() - t1, "sec")
-
-    tc = result.solver.termination_condition
-    status = result.solver.status
-
-    # Termination conditions that may still have a feasible incumbent
-    ACCEPTABLE_TC = {
-        TerminationCondition.optimal,
-        TerminationCondition.feasible,
-        TerminationCondition.maxTimeLimit,
-        TerminationCondition.maxIterations,
-        TerminationCondition.maxEvaluations
-    }
-
-    if tc not in ACCEPTABLE_TC:
+    if m.SolCount <= 0:
+        print("No feasible solution found.")
         return {
-            "status": status,
-            "has_solution": False,
-            "termination_condition": tc,
-            "objective": None,
-            "assignment": None,
-            "z": None,
-            "model": m,
+            "solution_found": False,
+            "objective": -1,
+            "assignment": None
         }
-
-    # Try to load a solution
-    try:
-        m.solutions.load_from(result)
-    except Exception as e:
-        print("Solution load failed:", e)
-        return {
-            "status": status,
-            "has_solution": False,
-            "termination_condition": tc,
-            "objective": None,
-            "assignment": None,
-            "z": None,
-            "model": m,
-        }
-
-    # --- Extract solution ---
-    assign = {v: None for v in V}
-    for v in V:
-        for i in I:
-            xv = pyo.value(m.x[v, i])
-            if xv is not None and xv > 0.5:
-                assign[v] = i
-                break
-
-    z_vals = {(k, i): int(round(pyo.value(m.z[k, i]))) for k in K for i in I}
-    obj_val = pyo.value(m.OBJ)
 
     return {
-        "status": status,
-        "has_solution": True,
-        "termination_condition": tc,
-        "objective": obj_val,
-        "assignment": assign,
-        "z": z_vals,
-        "model": m,
+        "solution_found": True,
+        "objective": m.ObjVal,
+        "assignment": m.getAttr("X", x)
     }
 
 args = sys.argv
-if len(sys.argv) < 3:
-    print("Usage: py ilp.py [elem|middle|high] [1|2|3]")
+if len(sys.argv) < 4:
+    print("Usage: py ilp.py [elem|middle|high] [1|2|3] [time_limit]")
     sys.exit(1)
 
 def adj_list_to_arcs(path, directed=False):
@@ -228,7 +129,7 @@ if args[1] == "elem":
         schools_idx = [int(row[0]) for row in csv.reader(f)]
     with open("data/capacity_es.csv", newline="") as f:
         cap_list = [float(row[0]) for row in csv.reader(f)]
-    y_matrix = []  # no lower-level schools
+    feeder = []  # no lower-level schools
 
 elif args[1] == "middle":
     with open("data/commute_ms.csv", newline="") as f:
@@ -240,7 +141,7 @@ elif args[1] == "middle":
     with open("data/capacity_ms.csv", newline="") as f:
         cap_list = [float(row[0]) for row in csv.reader(f)]
     with open("data/lower_es_"+args[2]+".csv", newline="") as f:
-        y_matrix = [[int(x) for x in row] for row in csv.reader(f)]
+        feeder = [[int(x) for x in row] for row in csv.reader(f)]
 elif args[1] == "high":
     with open("data/commute_hs.csv", newline="") as f:
         delta = [[float(x) for x in row] for row in csv.reader(f)]
@@ -251,7 +152,7 @@ elif args[1] == "high":
     with open("data/capacity_hs.csv", newline="") as f:
         cap_list = [float(row[0]) for row in csv.reader(f)]
     with open("data/lower_ms_"+args[2]+".csv", newline="") as f:
-        y_matrix = [[int(x) for x in row] for row in csv.reader(f)]
+        feeder = [[int(x) for x in row] for row in csv.reader(f)]
 
 else:
     raise ValueError("Invalid school level. Use 'elem', 'middle', or 'high'.")
@@ -264,37 +165,39 @@ assert len(cap_list) == num_schools
 assert all(0 <= s < len(V) for s in schools_idx)
 assert all(0 <= u < len(V) and 0 <= v < len(V) for (u,v) in arcs)
 if num_schools_lower > 0:
-    assert len(y_matrix) == len(V)
-    assert len(y_matrix[0]) == num_schools_lower
+    assert len(feeder) == len(V)
+    assert len(feeder[0]) == num_schools_lower
+
+G_nx = nx.Graph()
+G_nx.add_edges_from(arcs)
+
+for v in V:
+    G_nx.nodes[v]["pop"] = p[v]
+
+G = Graph.from_networkx(G_nx)
 
 sol = build_and_solve(
-    V=V,
-    p=p,
-    delta=delta,
-    num_schools=num_schools,
-    num_schools_lower=num_schools_lower,
-    schools_idx=schools_idx,
-    cap=cap_list,
-    y=y_matrix,
-    arcs=arcs,
-    solver_name="gurobi",
-    time_limit=28800
+    G=G,                                  # graph: nodes, edges, populations
+    delta=delta,                          # commute times: n_blocks x n_schools
+    num_schools=num_schools,              # number of schools/attendance areas
+    num_schools_lower=num_schools_lower,  # number of schools in lower level
+    schools_idx=schools_idx,              # which blocks each school corresponds to
+    cap=cap_list,                         # capacities of each school
+    feeder=feeder,                        # which lower level school each blocks was assigned to
+    time_limit=float(args[3])
 )
 
-print(sol["status"], sol["objective"])
-
-outbase = f"results/{args[1]}_{args[2]}"
-
-if sol["assignment"] is not None:
+if sol["solution_found"]:
+    x_sol = sol["assignment"]
+    assignment = {}
+    for v in G.nodes:
+        for i in range(num_schools):
+            if x_sol[v,i] > 0.5:
+                assignment[v] = i
+                break
+    outbase = f"results/{args[1]}_{args[2]}_{args[3]}"
     with open(outbase + ".csv", "w", newline="") as f:
-        assign = sol["assignment"]
-        if any(assign[v] is None for v in V):
-            raise RuntimeError("Incomplete assignment in solution.")
-        row = [(assign[v] + 1) for v in range(len(V))]
+        row = [(assignment[v] + 1) for v in range(len(V))]
         csv.writer(f).writerow(row)
-else:
-    # Always store something so you know what happened
-    with open(outbase + "_NOSOL.txt", "w") as f:
-        f.write(f"status={sol['status']}\n")
-        f.write(f"termination_condition={sol['termination_condition']}\n")
-        f.write("No feasible incumbent solution was found (Solution count 0 / time limit / abort).\n")
+
+print(sol["solution_found"], sol["objective"], sol["assignment"])
