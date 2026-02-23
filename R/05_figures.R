@@ -185,6 +185,19 @@ plans <- plans %>%
                        middle_current = "Current"
   ))
 
+middle_split <- hist(plans, elem_split_feeders) + 
+  labs(x = "Number of Split Feeders", 
+       y = "Fraction of Plans") + 
+  theme_bw()
+ggsave(
+  filename = here("figures/middle_split.png"),
+  plot = middle_split,
+  width = 6,
+  height = 4,
+  units = "in",
+  dpi = 300
+)
+
 middle_comp <- plot(plans, comp_polsby, geom = "boxplot") + 
   labs(x = "Ordered Attendance Area", y = "Polsby-Popper") + 
   theme_bw()
@@ -379,6 +392,19 @@ plans <- plans %>%
                        high_scenario5 = "Scenario 5",
                        high_current = "Current"
   ))
+
+high_split <- hist(plans, middle_split_feeders) + 
+  labs(x = "Number of Split Feeders", 
+       y = "Fraction of Plans") + 
+  theme_bw()
+ggsave(
+  filename = here("figures/high_split.png"),
+  plot = high_split,
+  width = 6,
+  height = 4,
+  units = "in",
+  dpi = 300
+)
 
 high_comp <- plot(plans, comp_polsby, geom = "boxplot") + 
   labs(x = "Ordered Attendance Area", y = "Polsby-Popper") + 
