@@ -75,14 +75,22 @@ plans <- rbind(plans1,
 #   labels = seq_along(levels(plans$draw))
 # )
 
-plans_ref <- plans %>% filter(draw == "ref") %>%
+plans_curr <- plans %>% filter(draw == "ref") %>%
   add_reference(map$high_current, "high_current") %>%
-  add_reference(map$high_scenario5, "high_scenario5") %>%
-  add_reference(map$high_scenario4, "high_scenario4") %>%
-  add_reference(map$high_scenario3, "high_scenario3") %>%
+  add_split_feeder_stats(map, "middle_current", "high")
+plans_2 <- plans %>% filter(draw == "ref") %>%
   add_reference(map$high_scenario2, "high_scenario2") %>%
+  add_split_feeder_stats(map, "middle_scenario2", "high")
+plans_3 <- plans %>% filter(draw == "ref") %>%
+  add_reference(map$high_scenario3, "high_scenario3") %>%
+  add_split_feeder_stats(map, "middle_scenario3", "high")
+plans_4 <- plans %>% filter(draw == "ref") %>%
+  add_reference(map$high_scenario4, "high_scenario4") %>%
+  add_split_feeder_stats(map, "middle_scenario4", "high")
+plans_5 <- plans %>% filter(draw == "ref") %>%
+  add_reference(map$high_scenario5, "high_scenario5") %>%
   add_split_feeder_stats(map, "middle_scenario5", "high")
 
-plans <- rbind(plans_ref, plans)
+plans <- rbind(plans_2, plans_3, plans_4, plans_5, plans_curr, plans)
 
 write_rds(plans, here("data-raw/high/plans/plans_hs_com0_inc15_split4_cap0_pop0.25.rds"), compress = "gz")
