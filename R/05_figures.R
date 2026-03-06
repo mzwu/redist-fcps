@@ -67,6 +67,18 @@ plans <- plans %>%
                        elem_current = "Current"
   ))
 
+elem_frac_edges <- hist(plans, comp_edge, bins = 40) + 
+  labs(x = "Fraction of Edges Kept", y = "Fraction of Plans") + 
+  theme_bw()
+ggsave(
+  filename = here("figures/elem_frac_edges.png"),
+  plot = elem_frac_edges,
+  width = 6,
+  height = 4,
+  units = "in",
+  dpi = 300
+)
+
 elem_comp <- plot(plans, comp_polsby, geom = "boxplot") + 
   labs(x = "Ordered Attendance Area", y = "Polsby-Popper") + 
   theme_bw() +
@@ -252,6 +264,18 @@ middle_split <- hist(plans, elem_split_feeders) +
 ggsave(
   filename = here("figures/middle_split.png"),
   plot = middle_split,
+  width = 6,
+  height = 4,
+  units = "in",
+  dpi = 300
+)
+
+middle_frac_edges <- hist(plans, comp_edge, bins = 40) + 
+  labs(x = "Fraction of Edges Kept", y = "Fraction of Plans") + 
+  theme_bw()
+ggsave(
+  filename = here("figures/middle_frac_edges.png"),
+  plot = middle_frac_edges,
   width = 6,
   height = 4,
   units = "in",
@@ -496,6 +520,18 @@ ggsave(
   dpi = 300
 )
 
+high_frac_edges <- hist(plans, comp_edge, bins = 40) + 
+  labs(x = "Fraction of Edges Kept", y = "Fraction of Plans") + 
+  theme_bw()
+ggsave(
+  filename = here("figures/high_frac_edges.png"),
+  plot = high_frac_edges,
+  width = 6,
+  height = 4,
+  units = "in",
+  dpi = 300
+)
+
 high_comp <- plot(plans, comp_polsby, geom = "boxplot") + 
   labs(x = "Ordered Attendance Area", y = "Polsby-Popper") + 
   theme_bw()
@@ -668,3 +704,36 @@ ggsave(
   units = "in",
   dpi = 300
 )
+
+
+### OTHER ANALYSIS
+x <- plans %>%
+  subset_sampled() %>%
+  group_by(district) %>%
+  summarise(
+    min = min(max_commute, na.rm = TRUE),
+    Q1 = quantile(max_commute, 0.25, na.rm = TRUE),
+    median = median(max_commute, na.rm = TRUE),
+    Q3 = quantile(max_commute, 0.75, na.rm = TRUE),
+    max = max(max_commute, na.rm = TRUE),
+    mean = mean(max_commute, na.rm = TRUE),
+    sd = sd(max_commute, na.rm = TRUE),
+    n = n()
+  )
+plans %>% filter(draw == "high_current") %>% pull(max_commute) %>% max()
+max(x$median)
+x <- plans %>%
+  subset_sampled() %>%
+  group_by(district) %>%
+  summarise(
+    min = min(comp_polsby, na.rm = TRUE),
+    Q1 = quantile(comp_polsby, 0.25, na.rm = TRUE),
+    median = median(comp_polsby, na.rm = TRUE),
+    Q3 = quantile(comp_polsby, 0.75, na.rm = TRUE),
+    max = max(comp_polsby, na.rm = TRUE),
+    mean = mean(comp_polsby, na.rm = TRUE),
+    sd = sd(comp_polsby, na.rm = TRUE),
+    n = n()
+  )
+plans %>% filter(draw == "high_current") %>% pull(comp_polsby) %>% max()
+max(x$median)
