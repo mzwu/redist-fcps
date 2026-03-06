@@ -19,6 +19,36 @@ ggsave(
 
 plans <- read_rds(here("data-raw/elem/plans/plans_es_mcmc_com1_inc12_cap10_pop0.66.rds"))
 
+elem_current_map <- redist.plot.plans(
+  plans,
+  "elem_current",
+  map
+) +
+  theme(plot.title = element_blank())
+ggsave(
+  filename = here("figures/elem_current_map.png"),
+  plot = elem_current_map,
+  width = 6,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
+
+elem_proposed_map <- redist.plot.plans(
+  plans,
+  "elem_scenario5",
+  map
+) +
+  theme(plot.title = element_blank())
+ggsave(
+  filename = here("figures/elem_proposed_map.png"),
+  plot = elem_proposed_map,
+  width = 6,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
+
 plans <- add_summary_stats(
   plans, map, 
   current = map$elem_current, 
@@ -166,6 +196,36 @@ ggsave(
 # LOAD MIDDLE MAP
 
 plans <- read_rds(here("data-raw/middle/plans/plans_ms_com1_inc11_split0_cap1_pop0.2.rds"))
+
+middle_current_map <- redist.plot.plans(
+  plans,
+  "middle_current",
+  map
+) +
+  theme(plot.title = element_blank())
+ggsave(
+  filename = here("figures/middle_current_map.png"),
+  plot = middle_current_map,
+  width = 6,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
+
+middle_proposed_map <- redist.plot.plans(
+  plans,
+  "middle_scenario5",
+  map
+) +
+  theme(plot.title = element_blank())
+ggsave(
+  filename = here("figures/middle_proposed_map.png"),
+  plot = middle_proposed_map,
+  width = 6,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
 
 plans <- add_summary_stats(
   plans, map, 
@@ -374,6 +434,36 @@ ggsave(
 # LOAD HIGH MAP
 
 plans <- read_rds(here("data-raw/high/plans/plans_hs_com0_inc15_split4_cap0_pop0.25.rds"))
+
+high_current_map <- redist.plot.plans(
+  plans,
+  "high_current",
+  map
+) +
+  theme(plot.title = element_blank())
+ggsave(
+  filename = here("figures/high_current_map.png"),
+  plot = high_current_map,
+  width = 6,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
+
+high_proposed_map <- redist.plot.plans(
+  plans,
+  "high_scenario5",
+  map
+) +
+  theme(plot.title = element_blank())
+ggsave(
+  filename = here("figures/high_proposed_map.png"),
+  plot = high_proposed_map,
+  width = 6,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
 
 plans <- add_summary_stats(
   plans, map, 
