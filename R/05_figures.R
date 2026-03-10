@@ -713,36 +713,24 @@ ggsave(
 
 
 ### OTHER ANALYSIS
-x <- plans %>%
+plans %>%
   subset_sampled() %>%
-  group_by(district) %>%
+  group_by(draw) %>%
   summarise(
-    min = min(max_commute, na.rm = TRUE),
-    Q1 = quantile(max_commute, 0.25, na.rm = TRUE),
-    median = median(max_commute, na.rm = TRUE),
-    Q3 = quantile(max_commute, 0.75, na.rm = TRUE),
-    max = max(max_commute, na.rm = TRUE),
-    mean = mean(max_commute, na.rm = TRUE),
-    sd = sd(max_commute, na.rm = TRUE),
-    n = n()
-  )
-plans %>% filter(draw == "high_current") %>% pull(max_commute) %>% max()
-max(x$median)
-x <- plans %>%
+    max_com = max(max_commute, na.rm = TRUE)
+  ) %>%
+  pull(max_com) %>% 
+  mean()
+plans %>% filter(draw == "middle_current") %>% pull(max_commute) %>% max()
+plans %>%
   subset_sampled() %>%
-  group_by(district) %>%
+  group_by(draw) %>%
   summarise(
-    min = min(comp_polsby, na.rm = TRUE),
-    Q1 = quantile(comp_polsby, 0.25, na.rm = TRUE),
-    median = median(comp_polsby, na.rm = TRUE),
-    Q3 = quantile(comp_polsby, 0.75, na.rm = TRUE),
-    max = max(comp_polsby, na.rm = TRUE),
-    mean = mean(comp_polsby, na.rm = TRUE),
-    sd = sd(comp_polsby, na.rm = TRUE),
-    n = n()
-  )
+    comp = max(comp_polsby, na.rm = TRUE)
+  ) %>%
+  pull(comp) %>% 
+  mean()
 plans %>% filter(draw == "high_current") %>% pull(comp_polsby) %>% max()
-max(x$median)
 
 commute_box_stats <- blocks_long %>%
   group_by(region, scenario) %>%
