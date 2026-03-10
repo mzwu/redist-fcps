@@ -743,3 +743,41 @@ x <- plans %>%
   )
 plans %>% filter(draw == "high_current") %>% pull(comp_polsby) %>% max()
 max(x$median)
+
+commute_box_stats <- blocks_long %>%
+  group_by(region, scenario) %>%
+  summarise(
+    min = min(commute, na.rm = TRUE),
+    Q1 = quantile(commute, 0.25, na.rm = TRUE),
+    median = median(commute, na.rm = TRUE),
+    Q3 = quantile(commute, 0.75, na.rm = TRUE),
+    max = max(commute, na.rm = TRUE),
+    mean = mean(commute, na.rm = TRUE),
+    sd = sd(commute, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  )
+
+cap_box_stats <- blocks_long %>%
+  group_by(region, scenario) %>%
+  summarise(
+    min = min(capacity, na.rm = TRUE),
+    Q1 = quantile(capacity, 0.25, na.rm = TRUE),
+    median = median(capacity, na.rm = TRUE),
+    Q3 = quantile(capacity, 0.75, na.rm = TRUE),
+    max = max(capacity, na.rm = TRUE),
+    mean = mean(capacity, na.rm = TRUE),
+    sd = sd(capacity, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  )
+
+blocks %>%
+  ggplot() +
+  geom_sf(aes(fill = avg_split_feeder)) +
+  scale_fill_viridis_c("Average Simulated \nSplit Feeder") +
+  theme_void() +
+  geom_sf_text(
+    data = subset(blocks, avg_split_feeder > 0.15),
+    aes(label = avg_split_feeder)
+  )
