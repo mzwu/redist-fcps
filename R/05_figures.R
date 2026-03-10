@@ -110,8 +110,10 @@ ggsave(
 )
 
 elem_polsby <- plans %>%
+  filter(draw %in% sample(unique(draw), 10)) %>%
   ggplot(aes(x = comp_polsby, y = max_commute)) +
   geom_point(size=1) +
+  geom_smooth(method = "loess", se = TRUE) +
   labs(
     x = "Compactness: Polsby-Popper",
     y = "Maximum Commute (min)"
@@ -307,8 +309,10 @@ ggsave(
 )
 
 middle_polsby <- plans %>%
+  filter(draw %in% sample(unique(draw), 10)) %>%
   ggplot(aes(x = comp_polsby, y = max_commute)) +
   geom_point(size=1) +
+  geom_smooth(method = "loess", se = TRUE) +
   labs(
     x = "Compactness: Polsby-Popper",
     y = "Maximum Commute (min)"
@@ -425,7 +429,7 @@ ggsave(
   dpi = 300
 )
 
-plans_sb <- read_rds(here("data-raw/middle/plans/plans_ms_sb_pop0.2.rds"))
+plans_sb <- read_rds(here("data-raw/middle/plans_ms_sb_pop0.2.rds"))
 
 middle_commute_boxplots <- comparison_boxplots(
   plans %>% subset_sampled(), 
@@ -557,8 +561,10 @@ ggsave(
 )
 
 high_polsby <- plans %>%
+  filter(draw %in% sample(unique(draw), 10)) %>%
   ggplot(aes(x = comp_polsby, y = max_commute)) +
   geom_point(size=1) +
+  geom_smooth(method = "loess", se = TRUE) +
   labs(
     x = "Compactness: Polsby-Popper",
     y = "Maximum Commute (min)"
@@ -675,7 +681,7 @@ ggsave(
   dpi = 300
 )
 
-plans_sb <- read_rds(here("data-raw/high/plans/plans_hs_sb_pop0.25.rds"))
+plans_sb <- read_rds(here("data-raw/high/plans_hs_sb_pop0.25.rds"))
 
 high_commute_boxplots <- comparison_boxplots(
   plans %>% subset_sampled(), 

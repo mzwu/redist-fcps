@@ -781,13 +781,13 @@ comparison_boxplots <- function(plans, plans_sb, map, schools_idx, commute_times
   blocks_long <- blocks_expanded %>%
     pivot_longer(
       cols = c(
+        avg_sim_commute,
+        avg_sb_commute,
         scenario2_commute,
         scenario3_commute,
         scenario4_commute,
         scenario5_commute,
-        current_commute,
-        avg_sim_commute,
-        avg_sb_commute
+        current_commute
       ),
       names_to = "scenario",
       values_to = "commute"
@@ -798,22 +798,22 @@ comparison_boxplots <- function(plans, plans_sb, map, schools_idx, commute_times
       scenario = factor(
         scenario,
         levels = c(
+          "avg_sim_commute",
+          "avg_sb_commute",
           "scenario2_commute",
           "scenario3_commute",
           "scenario4_commute",
           "scenario5_commute",
-          "current_commute",
-          "avg_sim_commute",
-          "avg_sb_commute"
+          "current_commute"
         ),
         labels = c(
+          "Simulated",
+          "Shortburst",
           "Scenario 2",
           "Scenario 3",
           "Scenario 4",
           "Scenario 5",
-          "Current",
-          "Simulated",
-          "Shortburst"
+          "Current"
         )
       )
     )
@@ -822,12 +822,13 @@ comparison_boxplots <- function(plans, plans_sb, map, schools_idx, commute_times
     ggplot(aes(
       x = factor(region),
       y = commute / 60,
-      color = scenario
+      color = scenario,
+      fill = scenario
     )) +
     geom_boxplot(
       position = position_dodge(width = 0.8),
       width = 0.6,
-      fill = NA
+      alpha = 0.4
     ) +
     labs(
       x = "Region",
@@ -837,24 +838,36 @@ comparison_boxplots <- function(plans, plans_sb, map, schools_idx, commute_times
     ) +
     scale_color_manual(
       values = c(
+        "Simulated"   = "#9d6bf3",
+        "Shortburst"    = "#6b8bf3",
         "Scenario 2" = "#F8766D",
         "Scenario 3" = "#A3A500",
         "Scenario 4" = "#00BF7D",
         "Scenario 5" = "#00B0F6",
-        "Current"   = "#E76BF3",
-        "Simulated"   = "#9d6bf3",
-        "Shortburst"    = "#6b8bf3"
+        "Current"   = "#E76BF3"
       ),
       labels = c(
+        avg_sim_commute   = "Simulated",
+        avg_sb_commute    = "Shortburst",
         scenario2_commute = "Scenario 2",
         scenario3_commute = "Scenario 3",
         scenario4_commute = "Scenario 4",
         scenario5_commute = "Scenario 5",
-        current_commute   = "Current",
-        avg_sim_commute   = "Simulated",
-        avg_sb_commute    = "Shortburst"
+        current_commute   = "Current"
       ),
       name = "Commute Times"
+    ) +
+    scale_fill_manual(
+      values = c(
+        "Simulated"  = "#9d6bf3",
+        "Shortburst" = "#6b8bf3",
+        "Scenario 2" = NA,
+        "Scenario 3" = NA,
+        "Scenario 4" = NA,
+        "Scenario 5" = NA,
+        "Current"    = NA
+      ),
+      guide = "none"   # removes duplicate fill legend
     ) +
     theme_bw()
   
@@ -1002,13 +1015,13 @@ capacity_boxplots <- function(plans, plans_sb, map, schools_idx, schools_capacit
   blocks_long <- blocks_expanded %>%
     pivot_longer(
       cols = c(
+        avg_sim_cap,
+        avg_sb_cap,
         scenario2_cap,
         scenario3_cap,
         scenario4_cap,
         scenario5_cap,
-        current_cap,
-        avg_sim_cap,
-        avg_sb_cap
+        current_cap
       ),
       names_to = "scenario",
       values_to = "capacity"
@@ -1019,22 +1032,22 @@ capacity_boxplots <- function(plans, plans_sb, map, schools_idx, schools_capacit
       scenario = factor(
         scenario,
         levels = c(
+          "avg_sim_cap",
+          "avg_sb_cap",
           "scenario2_cap",
           "scenario3_cap",
           "scenario4_cap",
           "scenario5_cap",
-          "current_cap",
-          "avg_sim_cap",
-          "avg_sb_cap"
+          "current_cap"
         ),
         labels = c(
+          "Simulated",
+          "Shortburst",
           "Scenario 2",
           "Scenario 3",
           "Scenario 4",
           "Scenario 5",
-          "Current",
-          "Simulated",
-          "Shortburst"
+          "Current"
         )
       )
     )
@@ -1043,12 +1056,13 @@ capacity_boxplots <- function(plans, plans_sb, map, schools_idx, schools_capacit
     ggplot(aes(
       x = factor(region),
       y = capacity,
-      color = scenario
+      color = scenario,
+      fill = scenario
     )) +
     geom_boxplot(
       position = position_dodge(width = 0.8),
       width = 0.6,
-      fill = NA
+      alpha = 0.4
     ) +
     geom_hline(
       yintercept = 1,
@@ -1064,24 +1078,36 @@ capacity_boxplots <- function(plans, plans_sb, map, schools_idx, schools_capacit
     ) +
     scale_color_manual(
       values = c(
+        "Simulated"   = "#9d6bf3",
+        "Shortburst"    = "#6b8bf3",
         "Scenario 2" = "#F8766D",
         "Scenario 3" = "#A3A500",
         "Scenario 4" = "#00BF7D",
         "Scenario 5" = "#00B0F6",
-        "Current"   = "#E76BF3",
-        "Simulated"   = "#9d6bf3",
-        "Shortburst"    = "#6b8bf3"
+        "Current"   = "#E76BF3"
       ),
       labels = c(
+        avg_sim_commute   = "Simulated",
+        avg_sb_commute    = "Shortburst",
         scenario2_commute = "Scenario 2",
         scenario3_commute = "Scenario 3",
         scenario4_commute = "Scenario 4",
         scenario5_commute = "Scenario 5",
-        current_commute   = "Current",
-        avg_sim_commute   = "Simulated",
-        avg_sb_commute    = "Shortburst"
+        current_commute   = "Current"
       ),
       name = "Capacity Utilization Ratio"
+    ) +
+    scale_fill_manual(
+      values = c(
+        "Simulated"  = "#9d6bf3",
+        "Shortburst" = "#6b8bf3",
+        "Scenario 2" = NA,
+        "Scenario 3" = NA,
+        "Scenario 4" = NA,
+        "Scenario 5" = NA,
+        "Current"    = NA
+      ),
+      guide = "none"   # removes duplicate fill legend
     ) +
     theme_bw()
   
