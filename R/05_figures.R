@@ -1,10 +1,18 @@
+region_cols <- c(
+  "1" = "#7FC97F",
+  "2" = "#BEAED4",
+  "3" = "#80B1D3",
+  "4" = "#FFFF99",
+  "5" = "#F0027F",
+  "6" = "#FB8072"
+)
 region_map <- map %>%
   ggplot(aes(fill = factor(region))) +
   geom_sf() +
   labs(
     fill = "Region"
   ) +
-  scale_fill_brewer(palette = "Accent") +
+  scale_fill_manual(values = region_cols) +
   theme_void()
 ggsave(
   filename = here("figures/region_map.png"),

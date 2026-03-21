@@ -597,11 +597,13 @@ split_feeder_heatmap <- function(plans, map, level) {
   
   p_blocks <- blocks %>%
     ggplot() +
-    geom_sf(aes(fill = avg_split_feeder)) +
+    geom_sf(aes(fill = avg_split_feeder), color = NA) +
     # labs(
     #   title = title
     # ) +
-    scale_fill_viridis_c("Average Simulated \nSplit Feeder") +
+    scale_fill_viridis_c("Average Simulated \nSplit Feeder", 
+                         option = "magma", 
+                         begin = 0.15) +
     theme_void()
   
   p_blocks
@@ -645,11 +647,13 @@ split_feeder_current <- function(map, level) {
   
   p_blocks <- blocks %>%
     ggplot() +
-    geom_sf(aes(fill = current_split_feeder)) +
+    geom_sf(aes(fill = current_split_feeder), color = NA) +
     # labs(
     #   title = title
     # ) +
-    scale_fill_viridis_d("Current Split \nFeeder Status") +
+    scale_fill_viridis_d("Current Split \nFeeder Status",
+                         option = "magma", 
+                         begin = 0.15, end = 0.9) +
     theme_void()
   
   p_blocks
@@ -693,11 +697,13 @@ split_feeder_proposed <- function(map, level) {
   
   p_blocks <- blocks %>%
     ggplot() +
-    geom_sf(aes(fill = scenario5_split_feeder)) +
+    geom_sf(aes(fill = scenario5_split_feeder), color = NA) +
     # labs(
     #   title = title
     # ) +
-    scale_fill_viridis_d("Proposed Split \nFeeder Status") +
+    scale_fill_viridis_d("Proposed Split \nFeeder Status",
+                         option = "magma", 
+                         begin = 0.15, end = 0.9) +
     theme_void()
   
   p_blocks
