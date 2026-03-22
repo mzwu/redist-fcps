@@ -777,3 +777,108 @@ blocks %>%
     data = subset(blocks, avg_split_feeder > 0.15),
     aes(label = avg_split_feeder)
   )
+
+### SPECIFIC ATTENDANCE AREAS
+# LOAD HIGH SCHOOL MAP AND PLAN
+map$high_pp_com <- as.matrix(plans)[, 736 + 5]
+map %>%
+  group_by(high_pp_com) %>%
+  summarise() %>%
+  mutate(highlight = high_pp_com == 24) %>%
+  ggplot() +
+  geom_sf(aes(fill = highlight)) +
+  scale_fill_manual(values = c("FALSE" = "grey90", "TRUE" = "red")) +
+  theme_bw()
+
+map$low_pp_com <- as.matrix(plans)[, 2001 + 5]
+map %>%
+  group_by(low_pp_com) %>%
+  summarise() %>%
+  mutate(highlight = low_pp_com == 10) %>%
+  ggplot() +
+  geom_sf(aes(fill = highlight)) +
+  scale_fill_manual(values = c("FALSE" = "grey90", "TRUE" = "red")) +
+  theme_bw()
+
+library(osmdata)
+
+bbox <- getbb("Fairfax County, Virginia")
+set_overpass_url("https://overpass-api.de/api/interpreter")
+roads <- opq(bbox = bbox) %>%
+  add_osm_feature(key = "highway") %>%
+  osmdata_sf()
+
+major_roads <- roads$osm_lines %>%
+  dplyr::filter(highway %in% c("motorway", "primary", "secondary"))
+
+ggplot() +
+  geom_sf(data = major_roads, color = "red", size = 0.4) +
+  theme_minimal()
+
+high_area <- map %>% filter(high_pp_com == 24) %>% group_by(high_pp_com) %>% summarise()
+high_roads_lines <- roads$osm_lines %>%
+  st_transform(st_crs(high_area)) %>%
+  st_filter(high_area, .predicate = st_intersects)
+high_major_roads_lines <- major_roads %>%
+  st_transform(st_crs(high_area)) %>%
+  st_filter(high_area, .predicate = st_intersects)
+high_area_roads <- ggplot() +
+  geom_sf(data = high_area, fill = "orange", alpha = 0.2) +
+  geom_sf(data = high_roads_lines, color = "black", linewidth = 0.3) +
+  geom_sf(data = ffx_hs %>% filter(SCHOOL_NAM == "McLean"), color = "red", size = 5) +
+  theme_void()
+ggsave(
+  filename = here("figures/high_area_roads.png"),
+  plot = high_area_roads,
+  width = 6,
+  height = 4,
+  units = "in",
+  dpi = 300
+)
+high_major_area_roads <- ggplot() +
+  geom_sf(data = high_area, fill = "orange", alpha = 0.3) +
+  geom_sf(data = high_major_roads_lines, color = "black", linewidth = 0.3) +
+  geom_sf(data = ffx_hs %>% filter(SCHOOL_NAM == "McLean"), color = "red", size = 5) +
+  theme_bw()
+ggsave(
+  filename = here("figures/high_major_area_roads.png"),
+  plot = high_major_area_roads,
+  width = 6,
+  height = 4,
+  units = "in",
+  dpi = 300
+)
+
+low_area <- map %>% filter(low_pp_com == 10) %>% group_by(low_pp_com) %>% summarise()
+low_roads_lines <- roads$osm_lines %>%
+  st_transform(st_crs(low_area)) %>%
+  st_filter(low_area, .predicate = st_intersects)
+low_major_roads_lines <- major_roads %>%
+  st_transform(st_crs(low_area)) %>%
+  st_filter(low_area, .predicate = st_intersects)
+low_area_roads <- ggplot() +
+  geom_sf(data = low_area, fill = "orange", alpha = 0.2) +
+  geom_sf(data = low_roads_lines, color = "black", linewidth = 0.3) +
+  geom_sf(data = ffx_hs %>% filter(SCHOOL_NAM == "Fairfax"), color = "red", size = 5) +
+  theme_bw()
+ggsave(
+  filename = here("figures/low_area_roads.png"),
+  plot = low_area_roads,
+  width = 6,
+  height = 4,
+  units = "in",
+  dpi = 300
+)
+low_major_area_roads <- ggplot() +
+  geom_sf(data = low_area, fill = "orange", alpha = 0.2) +
+  geom_sf(data = low_major_roads_lines, color = "black", linewidth = 0.3) +
+  geom_sf(data = ffx_hs %>% filter(SCHOOL_NAM == "Fairfax"), color = "red", size = 5) +
+  theme_bw()
+ggsave(
+  filename = here("figures/low_major_area_roads.png"),
+  plot = low_major_area_roads,
+  width = 6,
+  height = 4,
+  units = "in",
+  dpi = 300
+)
