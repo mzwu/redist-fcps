@@ -839,7 +839,7 @@ high_major_area_roads <- ggplot() +
   geom_sf(data = high_area, fill = "orange", alpha = 0.3) +
   geom_sf(data = high_major_roads_lines, color = "black", linewidth = 0.3) +
   geom_sf(data = ffx_hs %>% filter(SCHOOL_NAM == "McLean"), color = "red", size = 5) +
-  theme_bw()
+  theme_void()
 ggsave(
   filename = here("figures/high_major_area_roads.png"),
   plot = high_major_area_roads,
@@ -860,7 +860,7 @@ low_area_roads <- ggplot() +
   geom_sf(data = low_area, fill = "orange", alpha = 0.2) +
   geom_sf(data = low_roads_lines, color = "black", linewidth = 0.3) +
   geom_sf(data = ffx_hs %>% filter(SCHOOL_NAM == "Fairfax"), color = "red", size = 5) +
-  theme_bw()
+  theme_void()
 ggsave(
   filename = here("figures/low_area_roads.png"),
   plot = low_area_roads,
@@ -873,7 +873,7 @@ low_major_area_roads <- ggplot() +
   geom_sf(data = low_area, fill = "orange", alpha = 0.2) +
   geom_sf(data = low_major_roads_lines, color = "black", linewidth = 0.3) +
   geom_sf(data = ffx_hs %>% filter(SCHOOL_NAM == "Fairfax"), color = "red", size = 5) +
-  theme_bw()
+  theme_void()
 ggsave(
   filename = here("figures/low_major_area_roads.png"),
   plot = low_major_area_roads,
