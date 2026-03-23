@@ -986,7 +986,7 @@ smc_step1 <- map %>%
   summarise() %>%
   ggplot(aes(fill = group)) + 
   geom_sf() +
-  geom_sf_text(aes(label = ifelse(group == "0", "", group)), color = "black", size = 10) +
+  geom_sf_text(aes(label = ifelse(group == "0", "", group)), color = "black", size = 15) +
   scale_fill_manual(
     name = "Attendance\nArea",
     values = c(
@@ -1018,7 +1018,7 @@ smc_step2 <- map %>%
   summarise() %>%
   ggplot(aes(fill = group)) + 
   geom_sf() +
-  geom_sf_text(aes(label = ifelse(group == "0", "", group)), color = "black", size = 10) +
+  geom_sf_text(aes(label = ifelse(group == "0", "", group)), color = "black", size = 15) +
   scale_fill_manual(
     name = "Attendance\nArea",
     values = c(
@@ -1051,7 +1051,7 @@ smc_step3 <- map %>%
   summarise() %>%
   ggplot(aes(fill = group)) + 
   geom_sf() +
-  geom_sf_text(aes(label = ifelse(group == "0", "", group)), color = "black", size = 10) +
+  geom_sf_text(aes(label = ifelse(group == "0", "", group)), color = "black", size = 15) +
   scale_fill_manual(
     name = "Attendance\nArea",
     values = c(
@@ -1084,7 +1084,7 @@ smc_step4 <- map %>%
   summarise() %>%
   ggplot(aes(fill = group)) + 
   geom_sf() +
-  geom_sf_text(aes(label = ifelse(group == "0", "", group)), color = "black", size = 10) +
+  geom_sf_text(aes(label = ifelse(group == "0", "", group)), color = "black", size = 15) +
   scale_fill_manual(
     name = "Attendance\nArea",
     values = c(
@@ -1117,7 +1117,7 @@ mcmc_step1 <- map %>%
   summarise() %>%
   ggplot(aes(fill = group)) + 
   geom_sf() +
-  geom_sf_text(aes(label = ifelse(group == "0", "", group)), color = "black", size = 10) +
+  geom_sf_text(aes(label = ifelse(group == "0", "", group)), color = "black", size = 15) +
   scale_fill_manual(
     name = "Attendance\nArea",
     values = c(
@@ -1149,7 +1149,7 @@ mcmc_step2 <- map %>%
   summarise() %>%
   ggplot(aes(fill = group)) + 
   geom_sf() +
-  geom_sf_text(aes(label = ifelse(group == "0", "", group)), color = "black", size = 10) +
+  geom_sf_text(aes(label = ifelse(group == "0", "", group)), color = "black", size = 15) +
   scale_fill_manual(
     name = "Attendance\nArea",
     values = c(
@@ -1182,7 +1182,7 @@ mcmc_step3 <- map %>%
   summarise() %>%
   ggplot(aes(fill = group)) + 
   geom_sf() +
-  geom_sf_text(aes(label = ifelse(group == "0", "", group)), color = "black", size = 10) +
+  geom_sf_text(aes(label = ifelse(group == "0", "", group)), color = "black", size = 15) +
   scale_fill_manual(
     name = "Attendance\nArea",
     values = c(
