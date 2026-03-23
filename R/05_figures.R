@@ -1203,3 +1203,132 @@ ggsave(
   units = "in",
   dpi = 300
 )
+
+gsmc_step1 <- map %>%
+  mutate(group = case_when(
+    test %in% c(4, 19, 9, 13, 14, 21, 22, 15, 3, 20, 16, 10,7, 17, 1, 18, 8, 12, 24, 6, 5, 23, 11, 2)  ~ "0",
+  )) %>%
+  group_by(group) %>%
+  summarise() %>%
+  ggplot(aes(fill = group)) + 
+  geom_sf() +
+  geom_sf_text(aes(label = ifelse(group == "0", "", group)), color = "black", size = 15) +
+  scale_fill_manual(
+    name = "Attendance\nArea",
+    values = c(
+      "1" = "#F8766D",
+      "2" = "#7CAE00",
+      "3" = "#00A9FF",
+      "4" = "#C77CFF",
+      "A" = "gray",
+      "B" = "gray",
+      "0" = "gray"
+    )
+  ) +
+  theme_void() +
+  theme(legend.position = "none")
+ggsave(
+  filename = here("figures/gsmc_step1.png"),
+  plot = gsmc_step1,
+  width = 6,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
+
+gsmc_step2 <- map %>%
+  mutate(group = case_when(
+    test %in% c(4, 19, 9, 13, 14, 21, 22, 15, 3, 20, 16, 10)  ~ "A",
+    test %in% c(7, 17, 1, 18, 8, 12, 24, 6, 5, 23, 11, 2) ~ "B",
+  )) %>%
+  group_by(group) %>%
+  summarise() %>%
+  ggplot(aes(fill = group)) + 
+  geom_sf() +
+  geom_sf_text(aes(label = ifelse(group == "0", "", group)), color = "black", size = 15) +
+  scale_fill_manual(
+    name = "Attendance\nArea",
+    values = c(
+      "1" = "#F8766D",
+      "2" = "#7CAE00",
+      "3" = "#00A9FF",
+      "4" = "#C77CFF",
+      "A" = "gray",
+      "B" = "gray"
+    )
+  ) +
+  theme_void() +
+  theme(legend.position = "none")
+ggsave(
+  filename = here("figures/gsmc_step2.png"),
+  plot = gsmc_step2,
+  width = 6,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
+
+gsmc_step3 <- map %>%
+  mutate(group = case_when(
+    test %in% c(4, 19, 9, 13, 14, 21)  ~ "1",
+    test %in% c(22, 15, 3, 20, 16, 10)  ~ "2",
+    test %in% c(7, 17, 1, 18, 8, 12, 24, 6, 5, 23, 11, 2) ~ "B",
+  )) %>%
+  group_by(group) %>%
+  summarise() %>%
+  ggplot(aes(fill = group)) + 
+  geom_sf() +
+  geom_sf_text(aes(label = ifelse(group == "0", "", group)), color = "black", size = 15) +
+  scale_fill_manual(
+    name = "Attendance\nArea",
+    values = c(
+      "1" = "#F8766D",
+      "2" = "#7CAE00",
+      "3" = "#00A9FF",
+      "4" = "#C77CFF",
+      "B" = "gray"
+    )
+  ) +
+  theme_void() +
+  theme(legend.position = "none")
+ggsave(
+  filename = here("figures/gsmc_step3.png"),
+  plot = gsmc_step3,
+  width = 6,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
+
+gsmc_step4 <- map %>%
+  mutate(group = case_when(
+    test %in% c(4, 19, 9, 13, 14, 21)  ~ "1",
+    test %in% c(22, 15, 3, 20, 16, 10)  ~ "2",
+    test %in% c(7, 17, 1, 18, 8, 12) ~ "3",
+    test %in% c(24, 6, 5, 23, 11, 2) ~ "4"
+  )) %>%
+  group_by(group) %>%
+  summarise() %>%
+  ggplot(aes(fill = group)) + 
+  geom_sf() +
+  geom_sf_text(aes(label = ifelse(group == "0", "", group)), color = "black", size = 15) +
+  scale_fill_manual(
+    name = "Attendance\nArea",
+    values = c(
+      "1" = "#F8766D",
+      "2" = "#7CAE00",
+      "3" = "#00A9FF",
+      "4" = "#C77CFF",
+      "0" = "gray"
+    )
+  ) +
+  theme_void() +
+  theme(legend.position = "none")
+ggsave(
+  filename = here("figures/gsmc_step4.png"),
+  plot = gsmc_step4,
+  width = 6,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
