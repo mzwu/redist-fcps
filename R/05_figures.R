@@ -884,7 +884,7 @@ ggsave(
 low_major_area_roads <- ggplot() +
   geom_sf(data = low_area, fill = "orange", alpha = 0.2) +
   geom_sf(data = low_major_roads_lines, color = "black", linewidth = 0.3) +
-  geom_sf(data = low_major_roads_lines %>% filter(name == "Braddock Road"), color = "purple", linewidth = 0.6) +
+  geom_sf(data = low_major_roads_lines %>% filter(name == "Braddock Road"), color = "#00ba38", linewidth = 1) +
   geom_sf(data = ffx_ms %>% filter(row_number() == 17), color = "red", size = 5) +
   theme_void()
 ggsave(
@@ -955,7 +955,7 @@ ggsave(
 low_major_area_roads <- ggplot() +
   geom_sf(data = low_area, fill = "orange", alpha = 0.2) +
   geom_sf(data = low_major_roads_lines, color = "black", linewidth = 0.3) +
-  geom_sf(data = low_major_roads_lines %>% filter(name == "Idylwood Road"), color = "purple", linewidth = 0.6) +
+  geom_sf(data = low_major_roads_lines %>% filter(name == "Idylwood Road"), color = "#00ba38", linewidth = 1) +
   geom_sf(data = ffx_ms %>% filter(row_number() == 5), color = "red", size = 5) +
   theme_void()
 ggsave(
