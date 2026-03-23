@@ -1367,6 +1367,39 @@ ggsave(
   dpi = 300
 )
 
+schematic_gsmc <- map %>%
+  mutate(group = case_when(
+    test %in% c(4, 19, 9, 13, 14, 21)  ~ "1",
+    test %in% c(22, 15, 3, 20, 16, 10)  ~ "2",
+    test %in% c(7, 17, 1, 18, 8, 12, 24, 6, 5, 23, 11, 2) ~ "B",
+  )) %>%
+  group_by(group) %>%
+  summarise() %>%
+  ggplot(aes(fill = group)) + 
+  geom_sf() +
+  geom_sf(data = st_union(map), fill = NA, color = "black", linewidth = 1) +
+  geom_sf_text(aes(label = ifelse(group == "0", "", group)), color = "black", size = 15) +
+  scale_fill_manual(
+    name = "Attendance\nArea",
+    values = c(
+      "1" = "#F8766D",
+      "2" = "#7CAE00",
+      "3" = "#00A9FF",
+      "4" = "#C77CFF",
+      "B" = "gray"
+    )
+  ) +
+  theme_void() +
+  theme(legend.position = "none")
+ggsave(
+  filename = here("figures/schematic_gsmc.png"),
+  plot = schematic_gsmc,
+  width = 6,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
+
 schematic_lower <- map %>%
   mutate(group = case_when(
     test %in% c(4, 19, 9)  ~ "1",
