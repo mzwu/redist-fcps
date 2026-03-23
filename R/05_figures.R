@@ -779,22 +779,33 @@ blocks %>%
   )
 
 ### SPECIFIC ATTENDANCE AREAS
-# LOAD HIGH SCHOOL MAP AND PLAN
-map$high_pp_com <- as.matrix(plans)[, 736 + 5]
+
+# LOAD MIDDLE SCHOOL MAP AND PLAN
+x <- plans %>% filter(school_outside_zone == 0,
+                      comp_polsby > 0.4,
+                      max_commute > 45)
+high_plan_idx <- -3
+high_area_idx <- 18
+map$high_pp_com <- as.matrix(plans)[, high_plan_idx + 5]  # scenario 2
 map %>%
   group_by(high_pp_com) %>%
   summarise() %>%
-  mutate(highlight = high_pp_com == 24) %>%
+  mutate(highlight = high_pp_com == high_area_idx) %>%
   ggplot() +
   geom_sf(aes(fill = highlight)) +
   scale_fill_manual(values = c("FALSE" = "grey90", "TRUE" = "red")) +
   theme_bw()
 
-map$low_pp_com <- as.matrix(plans)[, 2001 + 5]
+x <- plans %>% filter(school_outside_zone == 0,
+                      comp_polsby < 0.17,
+                      max_commute < 19)
+low_plan_idx <- 2650
+low_area_idx <- 16
+map$low_pp_com <- as.matrix(plans)[, low_plan_idx + 5]
 map %>%
   group_by(low_pp_com) %>%
   summarise() %>%
-  mutate(highlight = low_pp_com == 10) %>%
+  mutate(highlight = low_pp_com == low_area_idx) %>%
   ggplot() +
   geom_sf(aes(fill = highlight)) +
   scale_fill_manual(values = c("FALSE" = "grey90", "TRUE" = "red")) +
@@ -815,7 +826,7 @@ ggplot() +
   geom_sf(data = major_roads, color = "red", size = 0.4) +
   theme_minimal()
 
-high_area <- map %>% filter(high_pp_com == 24) %>% group_by(high_pp_com) %>% summarise()
+high_area <- map %>% filter(high_pp_com == high_area_idx) %>% group_by(high_pp_com) %>% summarise()
 high_roads_lines <- roads$osm_lines %>%
   st_transform(st_crs(high_area)) %>%
   st_filter(high_area, .predicate = st_intersects)
@@ -825,7 +836,7 @@ high_major_roads_lines <- major_roads %>%
 high_area_roads <- ggplot() +
   geom_sf(data = high_area, fill = "orange", alpha = 0.2) +
   geom_sf(data = high_roads_lines, color = "black", linewidth = 0.3) +
-  geom_sf(data = ffx_hs %>% filter(SCHOOL_NAM == "McLean"), color = "red", size = 5) +
+  geom_sf(data = ffx_ms %>% filter(row_number() == high_area_idx), color = "red", size = 5) +
   theme_void()
 ggsave(
   filename = here("figures/high_area_roads.png"),
@@ -838,10 +849,10 @@ ggsave(
 high_major_area_roads <- ggplot() +
   geom_sf(data = high_area, fill = "orange", alpha = 0.3) +
   geom_sf(data = high_major_roads_lines, color = "black", linewidth = 0.3) +
-  geom_sf(data = ffx_hs %>% filter(SCHOOL_NAM == "McLean"), color = "red", size = 5) +
+  geom_sf(data = ffx_ms %>% filter(row_number() == high_area_idx), color = "red", size = 5) +
   theme_void()
 ggsave(
-  filename = here("figures/high_major_area_roads.png"),
+  filename = here("figures/high_area_major_roads.png"),
   plot = high_major_area_roads,
   width = 6,
   height = 4,
@@ -849,20 +860,21 @@ ggsave(
   dpi = 300
 )
 
-low_area <- map %>% filter(low_pp_com == 10) %>% group_by(low_pp_com) %>% summarise()
+low_area <- map %>% filter(low_pp_com == low_area_idx) %>% group_by(low_pp_com) %>% summarise()
 low_roads_lines <- roads$osm_lines %>%
   st_transform(st_crs(low_area)) %>%
   st_filter(low_area, .predicate = st_intersects)
+general_area <- map %>% filter(low_pp_com %in% c(16))
 low_major_roads_lines <- major_roads %>%
-  st_transform(st_crs(low_area)) %>%
-  st_filter(low_area, .predicate = st_intersects)
+  st_transform(st_crs(general_area)) %>%
+  st_filter(general_area, .predicate = st_intersects)
 low_area_roads <- ggplot() +
   geom_sf(data = low_area, fill = "orange", alpha = 0.2) +
   geom_sf(data = low_roads_lines, color = "black", linewidth = 0.3) +
-  geom_sf(data = ffx_hs %>% filter(SCHOOL_NAM == "Fairfax"), color = "red", size = 5) +
+  geom_sf(data = ffx_ms %>% filter(row_number() == 17), color = "red", size = 5) +
   theme_void()
 ggsave(
-  filename = here("figures/low_area_roads.png"),
+  filename = here("figures/low_area_roads_1.png"),
   plot = low_area_roads,
   width = 6,
   height = 4,
@@ -872,10 +884,80 @@ ggsave(
 low_major_area_roads <- ggplot() +
   geom_sf(data = low_area, fill = "orange", alpha = 0.2) +
   geom_sf(data = low_major_roads_lines, color = "black", linewidth = 0.3) +
-  geom_sf(data = ffx_hs %>% filter(SCHOOL_NAM == "Fairfax"), color = "red", size = 5) +
+  geom_sf(data = ffx_ms %>% filter(row_number() == 17), color = "red", size = 5) +
   theme_void()
 ggsave(
-  filename = here("figures/low_major_area_roads.png"),
+  filename = here("figures/low_area_major_roads_1.png"),
+  plot = low_major_area_roads,
+  width = 6,
+  height = 4,
+  units = "in",
+  dpi = 300
+)
+
+low_area_idx <- 8
+map$low_pp_com <- as.matrix(plans)[, low_plan_idx + 5]
+low_area <- map %>% filter(low_pp_com == low_area_idx) %>% group_by(low_pp_com) %>% summarise()
+low_roads_lines <- roads$osm_lines %>%
+  st_transform(st_crs(low_area)) %>%
+  st_filter(low_area, .predicate = st_intersects)
+general_area <- map %>% filter(low_pp_com %in% c(8))
+low_major_roads_lines <- major_roads %>%
+  st_transform(st_crs(general_area)) %>%
+  st_filter(general_area, .predicate = st_intersects)
+low_area_roads <- ggplot() +
+  geom_sf(data = low_area, fill = "orange", alpha = 0.2) +
+  geom_sf(data = low_roads_lines, color = "black", linewidth = 0.3) +
+  geom_sf(data = ffx_ms %>% filter(row_number() == 5), color = "red", size = 5) +
+  theme_void()
+ggsave(
+  filename = here("figures/low_area_roads_2_onlyarea.png"),
+  plot = low_area_roads,
+  width = 6,
+  height = 4,
+  units = "in",
+  dpi = 300
+)
+low_major_area_roads <- ggplot() +
+  geom_sf(data = low_area, fill = "orange", alpha = 0.2) +
+  geom_sf(data = low_major_roads_lines, color = "black", linewidth = 0.3) +
+  geom_sf(data = ffx_ms %>% filter(row_number() == 5), color = "red", size = 5) +
+  theme_void()
+ggsave(
+  filename = here("figures/low_area_major_roads_2_onlyarea.png"),
+  plot = low_major_area_roads,
+  width = 6,
+  height = 4,
+  units = "in",
+  dpi = 300
+)
+general_area <- map %>% filter(low_pp_com %in% c(7,8))
+low_roads_lines <- roads$osm_lines %>%
+  st_transform(st_crs(general_area)) %>%
+  st_filter(general_area, .predicate = st_intersects)
+low_major_roads_lines <- major_roads %>%
+  st_transform(st_crs(general_area)) %>%
+  st_filter(general_area, .predicate = st_intersects)
+low_area_roads <- ggplot() +
+  geom_sf(data = low_area, fill = "orange", alpha = 0.2) +
+  geom_sf(data = low_roads_lines, color = "black", linewidth = 0.3) +
+  geom_sf(data = ffx_ms %>% filter(row_number() == 5), color = "red", size = 5) +
+  theme_void()
+ggsave(
+  filename = here("figures/low_area_roads_2_morearea.png"),
+  plot = low_area_roads,
+  width = 6,
+  height = 4,
+  units = "in",
+  dpi = 300
+)
+low_major_area_roads <- ggplot() +
+  geom_sf(data = low_area, fill = "orange", alpha = 0.2) +
+  geom_sf(data = low_major_roads_lines, color = "black", linewidth = 0.3) +
+  geom_sf(data = ffx_ms %>% filter(row_number() == 5), color = "red", size = 5) +
+  theme_void()
+ggsave(
+  filename = here("figures/low_area_major_roads_2_morearea.png"),
   plot = low_major_area_roads,
   width = 6,
   height = 4,
