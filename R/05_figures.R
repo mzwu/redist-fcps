@@ -1401,7 +1401,7 @@ schematic_lower <- map %>%
   theme(legend.position = "none")
 ggsave(
   filename = here("figures/schematic_lower.png"),
-  plot = schematic_figure,
+  plot = schematic_lower,
   width = 6,
   height = 6,
   units = "in",
