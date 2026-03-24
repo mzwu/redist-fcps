@@ -1141,7 +1141,7 @@ ggsave(
 
 mcmc_step2 <- map %>%
   mutate(group = case_when(
-    test %in% c(4, 19, 9, 13, 14, 21, 22, 15, 3, 20, 16, 10)  ~ "Merged",
+    test %in% c(4, 19, 9, 13, 14, 21, 22, 15, 3, 20, 16, 10)  ~ "Merge",
     test %in% c(7, 17, 1, 18, 8, 12) ~ "3",
     test %in% c(24, 6, 5, 23, 11, 2) ~ "4"
   )) %>%
@@ -1157,7 +1157,7 @@ mcmc_step2 <- map %>%
       "2" = "#7CAE00",
       "3" = "#00A9FF",
       "4" = "#C77CFF",
-      "Merged" = "gray"
+      "Merge" = "gray"
     )
   ) +
   theme_void() +
